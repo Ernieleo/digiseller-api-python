@@ -7,7 +7,7 @@
 Не каждый запрос API и его описание в документации на сайте Digiseller соответствует действительности.
 ## Установка
 
-Установить с [pypi.org](https://pypi.org/project/digiseller-python-api)
+Установить с [pypi.org](https://pypi.org/project/digiseller-api-python/)
 ```sh
 pip3 install digiseller-api-python
 ```
