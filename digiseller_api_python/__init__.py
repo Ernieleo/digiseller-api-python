@@ -1,4 +1,4 @@
-""" digiseller-api python package created by Ernieleo. Version 1.0"""
+""" digiseller-api python package created by Ernieleo. Version 1.1"""
 
 import requests
 import hashlib
@@ -177,7 +177,7 @@ class Api:
 
     def seller_sells_statistic(self, product_ids: list, date_start: str, date_finish: str, returned: int, page: int, rows: int):
         """
-        Статистика продаж продавца.
+        Статистика продаж.
 
         Args:
             product_ids (dict, optional): Идентификаторы товаров. Массив целых чисел; если не указать, возвращается статистика по всем товарам.
@@ -2290,7 +2290,7 @@ class Api:
 
     """ Переписка с покупателями """
 
-    def chat_list(self, filter_new: int, email: str, id_ds: str, pagesize: int, page: int):
+    def chat_list(self, filter_new: int, pagesize: int, page: int, email=None, id_ds=None):
         """
         Получение списка диалогов.
 
@@ -2308,6 +2308,7 @@ class Api:
         """
 
         params = {
+            "token": self.token,
             'filter_new': filter_new,
             'email': email,
             'id_ds': id_ds,
@@ -2315,7 +2316,7 @@ class Api:
             'page': page
         }
 
-        return self.__request('GET', f'debates/v2/chats?token={self.token}', params=params)
+        return self.__request('GET', f'debates/v2/chats', params=params)
 
     def chat_status(self, id_i: int):
         """
@@ -2370,6 +2371,8 @@ class Api:
         """
 
         params = {
+            "token": self.token,
+            "id_i": id_i,
             'hidden': hidden,
             'id_from': id_from,
             'id_to': id_to,
@@ -2378,7 +2381,7 @@ class Api:
             'count': count
         }
 
-        return self.__request('GET', f'debates/v2?token={self.token}&id_i={id_i}', params=params)
+        return self.__request('GET', f'debates/v2', params=params)
 
     def chat_set_flag(self, id_i: int):
         """
@@ -2495,6 +2498,7 @@ class Api:
             URL INFO: "https://my.digiseller.com/inside/api_account.asp#digiseller"
         """
         params = {
+            "token": self.token,
             "page": page,
             "count": count,
             "currency": currency,
@@ -2507,11 +2511,11 @@ class Api:
         for i, type_op in enumerate(types):
             params[f"type[{i}]"] = type_op
 
-        return self.__request('GET', f'sellers/account/receipts?token={self.token}', params=params)
+        return self.__request('GET', f'sellers/account/receipts', params=params)
 
     def sellers_account_receipts_external(self, page: int, count: int, order: str, code: str, aggregator: str):
         """
-        Получение информации об операциях через внешних агрегаторов.
+        Операции через внешних агрегаторов.
 
         Args:
             page (int): Номер страницы.
@@ -2526,6 +2530,7 @@ class Api:
         """
 
         params = {
+            "token": self.token,
             "order": order,
             "count": count,
             "page": page,
@@ -2533,7 +2538,7 @@ class Api:
             "aggregator": aggregator
         }
 
-        return self.__request('GET', f'sellers/account/receipts/external?token={self.token}', params=params)
+        return self.__request('GET', f'sellers/account/receipts/external', params=params)
 
     def sellers_account_balance(self):
         """

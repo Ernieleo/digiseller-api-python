@@ -52,7 +52,7 @@ print(api.chat_list(...))
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_statistics.asp#last_sales)
 
-4. Название: `Статистика продаж продавца`
+4. Название: `Статистика продаж`
     - Функция: `seller_sells_statistic`
     - Параметры: `product_ids: list, date_start: str, date_finish: str, returned: int, page: int, rows: int`
     - Ответ: `Ответ от сервера в формате JSON`
@@ -100,7 +100,7 @@ print(api.chat_list(...))
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_catgoods.asp#reviews)
 
-12. Название: `Получаем товары продавца`
+12. Название: `Товары продавца`
     - Функция: `seller_goods`
     - Параметры: `seller_id: int, order_col: str, order_dir: str, rows: int, page: int, currency: str, lang: str, show_hidden: int`
     - Ответ: `Ответ от сервера в формате JSON`
@@ -118,69 +118,69 @@ print(api.chat_list(...))
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_catgoods.asp#goodswithoffer)
 
-15. Название: `Создание товара типа 'Уникальный товар с фиксированной ценой`
+15. Название: `Создание товара типа "Уникальный товар с фиксированной ценой"`
     - Функция: `product_create_uniquefixed`
     - Параметры: `data: dict`
     - Примечание: `Формат запроса (Data) указан в Документации API. См. Ссылка на API`
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_goods.asp#createuniquefixed)
 
-16. Название: `Создание товара типа 'Уникальный товар с нефиксированной ценой'`
+16. Название: `Создание товара типа "Уникальный товар с нефиксированной ценой"`
     - Функция: `product_create_uniqueunfixed`
     - Параметры: `data: dict`
     - Примечание: `Формат запроса (Data) указан в Документации API. См. Ссылка на API`
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_goods.asp#createuniqueunfixed)
 
-17. Название: `Создание товара типа 'Электронная книга'`
+17. Название: `Создание товара типа "Электронная книга"`
     - Функция: `product_create_book`
     - Параметры: `data: dict`
     - Примечание: `Формат запроса (Data) указан в Документации API. См. Ссылка на API`
     - [Ссылка на API](https://my.digiseller.com/inside/api_goods.asp#createbook)
 
-18. Название: `Создание товара типа 'Программное обеспечение'`
+18. Название: `Создание товара типа "Программное обеспечение"`
     - Функция: `product_create_software`
     - Параметры: `data: dict`
     - Примечание: `Формат запроса (Data) указан в Документации API. См. Ссылка на API`
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_goods.asp#createsoftware)
 
-19. Название: `Создание товара типа 'Произвольный цифровой товар'`
+19. Название: `Создание товара типа "Произвольный цифровой товар"`
     - Функция: `product_create_arbitrary`
     - Параметры: `data: dict`
     - Примечание: `Формат запроса (Data) указан в Документации API. См. Ссылка на API`
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_goods.asp#createarbitrary)
 
-20. Название: `Редактирование товара типа 'Уникальный товар с фиксированной ценой'`
+20. Название: `Редактирование товара типа "Уникальный товар с фиксированной ценой"`
     - Функция: `product_edit_uniquefixed`
     - Параметры: `product_id: int, data: dict`
     - Примечание: `Формат запроса (Data) указан в Документации API. См. Ссылка на API`
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_goods.asp#edituniquefixed)
 
-21. Название: `Редактирование товара типа 'Уникальный товар с нефиксированной ценой'`
+21. Название: `Редактирование товара типа "Уникальный товар с нефиксированной ценой"`
     - Функция: `product_edit_uniqueunfixed`
     - Параметры: `product_id: int, data: dict`
     - Примечание: `Формат запроса (Data) указан в Документации API. См. Ссылка на API`
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_goods.asp#edituniqueunfixed)
 
-22. Название: `Редактирование товара типа 'Электронная книга'`
+22. Название: `Редактирование товара типа "Электронная книга"`
     - Функция: `product_edit_book`
     - Параметры: `product_id: int, data: dict`
     - Примечание: `Формат запроса (Data) указан в Документации API. См. Ссылка на API`
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_goods.asp#editbook)
 
-23. Название: `Редактирование товара типа 'Программное обеспечение'`
+23. Название: `Редактирование товара типа "Программное обеспечение"`
     - Функция: `product_edit_software`
     - Параметры: `product_id: int, data: dict`
     - Примечание: `Формат запроса (Data) указан в Документации API. См. Ссылка на API`
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_goods.asp#editsoftware)
 
-24. Название: `Редактирование товара типа 'Произвольный цифровой товар'`
+24. Название: `Редактирование товара типа "Произвольный цифровой товар"`
     - Функция: `product_edit_arbitrary`
     - Параметры: `product_id: int, data: dict`
     - Примечание: `Формат запроса (Data) указан в Документации API. См. Ссылка на API`
@@ -251,7 +251,7 @@ print(api.chat_list(...))
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_goods.asp#productsUpdateStatus)
 
-35. Название: `Метод добавления содержимого типа 'Файл'`
+35. Название: `Метод добавления содержимого типа "Файл"`
     - Функция: `product_content_add_file`
     - Параметры: `product_id: int, file`
     - Примечание: `File: files = {'text.txt': open('passwords.txt', 'rb')}`
@@ -264,7 +264,7 @@ print(api.chat_list(...))
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_content.asp#addfiles)
 
-37. Название: `Добавление содержимого типа 'текст' или 'ссылка'`
+37. Название: `Добавление содержимого типа "текст" или "ссылка"`
     - Функция: `product_content_add_text`
     - Параметры: `data: dict`
     - Ответ: `Ответ от сервера в формате JSON`
@@ -276,32 +276,32 @@ print(api.chat_list(...))
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_content.asp#addcode)
 
-39. Название: `Метод редактирования содержимого типа 'Файл'`
+39. Название: `Метод редактирования содержимого типа "Файл"`
     - Функция: `product_content_update_file_v2`
     - Параметры: `files: dict, content_id: int, product_id: int, update_old: bool`
     - Примечание: `files = { '1': ('image1.jpeg', open('1.jpeg', 'rb')), '2': ('image2.jpeg', open('2.jpeg', 'rb')) }`
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_content.asp#updateFile)
 
-40. Название: `Редактирование содержимого типа 'текст' или 'ссылка'`
+40. Название: `Редактирование содержимого типа "текст" или "ссылка"`
     - Функция: `product_content_update_text`
     - Параметры: `content_id: int, serial: str, value: str, update_old: bool, product_id: int`
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_content.asp#updateText)
 
-41. Название: `Удаление содержимого типа 'текст', 'ссылка' или 'файл'`
+41. Название: `Удаление содержимого типа "текст", "ссылка" или "файл"`
     - Функция: `product_content_delete`
     - Параметры: `content_id: int, product_id: int`
     - Ответ: `StatusCode: 204 (NoContent)`
     - [Ссылка на API](https://my.digiseller.com/inside/api_content.asp#deleteContent)
 
-42. Название: `Полное удаление содержимого типа 'текст', 'ссылка' или 'файл'`
+42. Название: `Полное удаление содержимого типа "текст", "ссылка" или "файл"`
     - Функция: `product_content_delete_all`
     - Параметры: `product_id: int`
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_content.asp#deleteAllContent)
 
-43. Название: `Создание или редактирование содержимого типа 'форма'`
+43. Название: `Создание или редактирование содержимого типа "форма"`
     - Функция: `product_content_update_form`
     - Параметры: `product_id: int, address: str, method: str, encoding: str, options: bool, answer: bool, allow_purchase_multiple_items: bool, url_for_quantity: str`
     - Ответ: `Ответ от сервера в формате JSON`
@@ -457,13 +457,13 @@ print(api.chat_list(...))
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_rekl.asp#rekl)
 
-68. Название: `Получение информации об операциях по личному счету Digiseller`
+68. Название: `Операции по личному счету Digiseller`
     - Функция: `sellers_account_receipts`
     - Параметры: `page: int, count: int, currency: str, types: list, code_filter: str, allowtype: str, start: str, finish: str`
     - Ответ: `Ответ от сервера в формате JSON`
     - [Ссылка на API](https://my.digiseller.com/inside/api_account.asp#digiseller)
 
-69. Название: `Получение информации об операциях через внешних агрегаторов`
+69. Название: `Операции через внешних агрегаторов`
     - Функция: `sellers_account_receipts_external`
     - Параметры: `page: int, count: int, order: str, code: str, aggregator: str`
     - Ответ: `Ответ от сервера в формате JSON`
