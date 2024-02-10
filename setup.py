@@ -8,13 +8,13 @@ def readme():
 
 setup(
     name='digiseller_api_python',
-    version='1.1',
-    author='Ernieleo & DrugOFF',
+    version='1.2',
+    author='Ernieleo',
     author_email='ernieleo@vk.com',
     description='Interaction with Digiseller API',
     long_description=readme(),
     long_description_content_type='text/markdown',
-    url='',
+    url='https://github.com/Ernieleo/Digiseller-API-Python',
     packages=find_packages(),
     install_requires=['requests>=2.31.0'],
     classifiers=[
