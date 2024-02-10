@@ -79,48 +79,41 @@ class Api:
 
         headers = {'Accept': 'application/json; charset=UTF-8'}
 
-        # Устанавливаем 'Content-Type' на 'application/json' только для запросов без файлов
         if 'files' not in options:
             headers['Content-Type'] = 'application/json'
 
-        # Обновляем headers значениями из options['headers'], если они есть
         if 'headers' in options:
             headers.update(options.pop('headers'))
 
-        # Включаем заголовки в параметры запроса
         options['headers'] = headers
 
-        # Передаем заголовки и остальные параметры в запрос
         response = self.session.request(method, self.base_uri + uri_path, **options)
 
-        data = response.json()
-        if response.status_code == 200:
-            if 'retval' in data:
-                if data['retval'] == 0:
-                    return data
-                else:
-                    error_message = 'Не пройдена проверка ответа Digiseller API'
-                    if 'desc' in data:
-                        error_message = data.get('desc', error_message)
-                    elif 'retdesc' in data:
-                        error_message = data.get('retdesc', error_message)
-
-                    if 'errors' in data:
-                        detailed_errors = []
-                        for error in data['errors']:
-                            for message in error.get('message', []):
-                                # Фильтровать сообщения по языку
-                                if message['locale'] == 'ru-RU':
-                                    detailed_errors.append(f"{error['code']}: {message['value']}")
-                        if detailed_errors:
-                            error_message += " | " + " ; ".join(detailed_errors)
-
-                    raise ValueError(error_message)
+        # Проверяем, не пустой ли ответ
+        if not response.text:
+            # Обработка пустого ответа или ответа, не содержащего JSON
+            if response.status_code == 200:
+                return {"message": "Ответ не содержит данных", "status_code": response.status_code}
             else:
-                # Если 'retval' нет в ответе, но ответ успешный
-                return data
+                raise Exception(f'Ошибка! HTTP Код состояния: {response.status_code}, тело ответа пусто')
+
+        try:
+            data = response.json()
+        except ValueError:
+            # Обработка случая, когда содержимое ответа не является JSON
+            raise ValueError(f"Ошибка декодирования JSON: код состояния {response.status_code}, тело ответа '{response.text}'")
+
+        if response.status_code == 200:
+            if 'retval' in data and data['retval'] != 0:
+                error_message = data.get('desc', data.get('retdesc', 'Неизвестная ошибка Digiseller API'))
+                if 'errors' in data:
+                    detailed_errors = [
+                        f"{data['code']}: {data.get('message', 'No message')}['value'] for error in data['errors'] for message in error.get('message', []) if message['locale'] == 'ru-RU'"]
+                    error_message += " | " + " ; ".join(detailed_errors)
+                raise ValueError(error_message)
+            return data
         else:
-            raise Exception(f'Ошибка! HTTP Код состояния: {response.status_code}')
+            raise Exception(f'Ошибка! HTTP Код состояния: {response.status_code}, содержимое: {response.text}')
 
     def unique_code(self, unique_code: str):
         """
