@@ -2439,7 +2439,7 @@ class Api:
         if 'files' in data:
             headers = {'Content-Type': 'multipart/form-data'}
         else:
-            headers = {'application/json; charset=UTF-8'}
+            headers = {'Content-Type': 'application/json'}
 
         return self.__request('POST', f'debates/v2/?token={self.token}&id_i={id_i}', json=data, headers=headers)
 
