@@ -3,6 +3,7 @@
 import requests
 import hashlib
 import time
+import json
 
 from requests import Response
 
@@ -29,34 +30,28 @@ class Api:
         if not isinstance(api_key, str) or not api_key:
             raise ValueError("Необходимо передать в API корректный 'api_key'.\nПолучить ключ с назначением прав доступа, в разделе API на my.digiseller.com")
 
-        self.base_uri = self.URL + "/"
         self.session = requests.Session()
         self.seller_id = int(seller_id)
         self.api_key = api_key
+        self.token_expiration = 0
         self.token = None
-        self.token_expiration = None
-        self.__get_token()
 
     def __get_token(self):
         current_time = int(time.time())
-
-        # Если токен ещё не получен или истек, или осталось менее 1 час 50 минут до его истечения, обновляем токен
-        if self.token is None or current_time >= self.token_expiration - 6600:
+        if self.token is None or current_time >= self.token_expiration:
             sign = hashlib.sha256((self.api_key + str(current_time)).encode()).hexdigest()
-            headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
             data = {
                 "seller_id": self.seller_id,
                 "timestamp": current_time,
                 "sign": sign
             }
-            r_data = self.__request('post', f'apilogin', headers=headers, json=data)
-            token = r_data.get('token')
-            if token:
-                self.token = token
-                self.token_expiration = current_time + 900  # Устанавливаем время истечения через 15 минут
+            response = self.session.post(self.URL + 'apilogin', json=data)
+            if response.status_code == 200:
+                response_data = response.json()
+                self.token = response_data.get('token')
+                self.token_expiration = current_time + 5400  # Жизнь токена - 1.5 часа [По докам 2, но на всякий]
             else:
-                raise ValueError("Не удалось получить Токен. Обратитесь к Автору модуля на GitHub")
-
+                raise ValueError("Не удалось получить токен.")
         return self.token
 
     """ Общие методы """
@@ -76,42 +71,39 @@ class Api:
         Raises:
             Exception: Если во время запроса возникает ошибка.
         """
+        current_time = int(time.time())
+        if self.token is None or current_time >= self.token_expiration:
+            token = self.__get_token()
+            if 'params' in options:
+                options['params']['token'] = token
+            elif 'json' in options:
+                options['json']['token'] = token
+            else:
+                uri_path += f'?token={token}'
 
         headers = {'Accept': 'application/json; charset=UTF-8'}
-
         if 'files' not in options:
             headers['Content-Type'] = 'application/json'
-
         if 'headers' in options:
             headers.update(options.pop('headers'))
-
         options['headers'] = headers
 
-        response = self.session.request(method, self.base_uri + uri_path, **options)
-
-        # Проверяем, не пустой ли ответ
-        if not response.text:
-            # Обработка пустого ответа или ответа, не содержащего JSON
-            if response.status_code == 200:
-                return {"message": "Ответ не содержит данных", "status_code": response.status_code}
-            else:
-                raise Exception(f'Ошибка! HTTP Код состояния: {response.status_code}, тело ответа пусто')
-
-        try:
-            data = response.json()
-        except ValueError:
-            # Обработка случая, когда содержимое ответа не является JSON
-            raise ValueError(f"Ошибка декодирования JSON: код состояния {response.status_code}, тело ответа '{response.text}'")
+        response = self.session.request(method, self.URL + uri_path, **options)
 
         if response.status_code == 200:
-            if 'retval' in data and data['retval'] != 0:
-                error_message = data.get('desc', data.get('retdesc', 'Неизвестная ошибка Digiseller API'))
-                if 'errors' in data:
-                    detailed_errors = [
-                        f"{data['code']}: {data.get('message', 'No message')}['value'] for error in data['errors'] for message in error.get('message', []) if message['locale'] == 'ru-RU'"]
-                    error_message += " | " + " ; ".join(detailed_errors)
-                raise ValueError(error_message)
-            return data
+            try:
+                data = response.json()
+                if 'retval' in data and data['retval'] != 0:
+                    error_message = f"Ошибка в API: '{data.get('retdesc', 'Неизвестная ошибка Digiseller API')}'"
+                    if 'errors' in data:
+                        for error in data['errors']:
+                            message = next((msg['value'] for msg in error['message'] if msg['locale'] == 'ru-RU'),
+                                           next((msg['value'] for msg in error['message'] if msg['locale'] == 'en-US'), "Неизвестная ошибка"))
+                            error_message += f". Код ошибки: '{error['code']}'. Причина ошибки: '{message}'."
+                    raise ValueError(error_message)
+                return data
+            except json.decoder.JSONDecodeError:
+                raise ValueError(f"Ошибка декодирования JSON: Код HTTP '{response.status_code}'\nТело ответа: '{response.text}'")
         else:
             raise Exception(f'Ошибка! HTTP Код состояния: {response.status_code}, содержимое: {response.text}')
 
@@ -128,7 +120,7 @@ class Api:
 
         """
 
-        return self.__request('GET', f'purchases/unique-code/{unique_code}?token={self.token}')
+        return self.__request('GET', f'purchases/unique-code/{unique_code}', params={"token": self.token})
 
     def purchase_info(self, invoice_id: int):
         """
@@ -142,7 +134,7 @@ class Api:
             URL INFO: "https://my.digiseller.com/inside/api_general.asp#purchase_info"
         """
 
-        return self.__request('GET', f'/purchase/info/{invoice_id}?token={self.token}')
+        return self.__request('GET', f'/purchase/info/{invoice_id}', params={"token": self.token})
 
     """ Статистика """
 
@@ -194,7 +186,7 @@ class Api:
             "rows": rows
         }
 
-        return self.__request('POST', f'seller-sells/v2?token={self.token}', json=data)
+        return self.__request('POST', f'seller-sells/v2', params={"token": self.token},  json=data)
 
     def agent_sales_statistic(self, product_ids: list, date_start: str, date_finish: str, returned: int, page: int, rows: int):
         """
@@ -221,7 +213,7 @@ class Api:
             "rows": rows
         }
 
-        return self.__request('POST', f'agent-sales/v2?token={self.token}', json=data)
+        return self.__request('POST', f'agent-sales/v2', params={"token": self.token},  json=data)
 
     """ Товары и категории """
 
@@ -305,14 +297,13 @@ class Api:
 
         return self.__request('POST', 'products/list', json=data)
 
-    def product_description(self, product_id: int, seller_id: int, partner_uid: str, currency: str,
-                            lang: str, owner: int):
+    def product_description(self, product_id: int, seller_id: int, partner_uid: str, currency: str, lang: str, owner: int):
         """
         Описание товара.
 
         Args:
             product_id (int): идентификатор товара.
-            seller_id (int, optional): необязательный параметр, указывайте если используете корзину. ID продавца товара или свой идентификатор (если товар принадлежит вам или вы добавили его в свой магазин)	ID.
+            seller_id (int, optional): необязательный параметр, указывайте если используете корзину. ID продавца товара или свой ID (если товар принадлежит вам или вы добавили его в свой магазин).
             partner_uid (str, optional): партнерский UID (для учета индивидуальных отчислений).
             currency (str): валюта	USD (по умолчанию) или RUB | EUR | UAH.
             lang (str): язык отображения информации	ru-RU (по умолчанию) или en-US.
@@ -441,7 +432,7 @@ class Api:
             "token": self.token
         }
 
-        return self.__request('POST', f'seller-goods?token={self.token}', json=data)
+        return self.__request('POST', f'seller-goods', params={"token": self.token},  json=data)
 
     """
     SKIP: Скидка по товару, Поиск по товарам, Быстрое получение основного изображения товара.
@@ -475,7 +466,7 @@ class Api:
             "gallery": gallery
         }
 
-        return self.__request('POST', f'product/clone/{product_id}?token={self.token}', json=data)
+        return self.__request('POST', f'product/clone/{product_id}', params={"token": self.token},  json=data)
 
     def agents_offer(self, seller_id: int, product_name: str, product_id: int, only_in_stock: bool,
                      only_individual: bool, page: int, count: int):
@@ -602,7 +593,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#createuniquefixed"
         """
-        return self.__request("POST", f'product/create/uniquefixed?token={self.token}', json=data)
+        return self.__request("POST", f'product/create/uniquefixed', params={"token": self.token},  json=data)
 
     def product_create_uniqueunfixed(self, data: dict):
         """
@@ -712,7 +703,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#createuniqueunfixed"
         """
-        return self.__request('POST', f'product/create/uniqueunfixed?token={self.token}', json=data)
+        return self.__request('POST', f'product/create/uniqueunfixed', params={"token": self.token},  json=data)
 
     def product_create_book(self, data: dict):
         """
@@ -797,7 +788,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#createbook"
         """
-        return self.__request('POST', f'product/create/book?token={self.token}', json=data)
+        return self.__request('POST', f'product/create/book', params={"token": self.token},  json=data)
 
     def product_create_software(self, data: dict):
         """
@@ -882,7 +873,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#createsoftware"
         """
-        return self.__request('POST', f'product/create/software?token={self.token}', json=data)
+        return self.__request('POST', f'product/create/software', params={"token": self.token},  json=data)
 
     def product_create_arbitrary(self, data: dict):
         """
@@ -968,7 +959,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#createarbitrary"
         """
-        return self.__request('POST', f'product/create/arbitrary?token={self.token}', json=data)
+        return self.__request('POST', f'product/create/arbitrary', params={"token": self.token},  json=data)
 
     def product_edit_uniquefixed(self, product_id: int, data: dict):
         """
@@ -1062,7 +1053,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#edituniquefixed"
         """
-        return self.__request('POST', f'product/edit/uniquefixed/{product_id}?token={self.token}', json=data)
+        return self.__request('POST', f'product/edit/uniquefixed/{product_id}', params={"token": self.token},  json=data)
 
     def product_edit_uniqueunfixed(self, product_id: int, data: dict):
         """
@@ -1172,7 +1163,7 @@ class Api:
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#edituniqueunfixed"
         """
         return self.__request('POST',
-                              f'https://api.digiseller.ru/api/product/edit/uniqueunfixed/{product_id}?token={self.token}',
+                              f'https://api.digiseller.ru/api/product/edit/uniqueunfixed/{product_id}', params={"token": self.token}, 
                               json=data)
 
     def product_edit_book(self, product_id: int, data: dict):
@@ -1259,7 +1250,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#editbook"
         """
-        return self.__request('POST', f'product/edit/book/{product_id}?token={self.token}', json=data)
+        return self.__request('POST', f'product/edit/book/{product_id}', params={"token": self.token},  json=data)
 
     def product_edit_software(self, product_id: int, data: dict):
         """
@@ -1345,7 +1336,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#editsoftware"
         """
-        return self.__request('POST', f'product/edit/software/{product_id}?token={self.token}', json=data)
+        return self.__request('POST', f'product/edit/software/{product_id}', params={"token": self.token},  json=data)
 
     def product_edit_arbitrary(self, product_id: int, data: dict):
         """
@@ -1430,7 +1421,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#editarbitrary"
         """
-        return self.__request('POST', f'product/edit/arbitrary/{product_id}?token={self.token}', json=data)
+        return self.__request('POST', f'product/edit/arbitrary/{product_id}', params={"token": self.token},  json=data)
 
     def product_edit_base(self, product_id: int, data: dict):
         """
@@ -1515,7 +1506,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#editbase"
         """
-        return self.__request('POST', f'product/edit/base/{product_id}?token={self.token}', json=data)
+        return self.__request('POST', f'product/edit/base/{product_id}', params={"token": self.token},  json=data)
 
     def product_preview_add_images(self, product_id: int, files):
         """
@@ -1530,7 +1521,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#add_image_preview"
         """
-        return self.__request('POST', f'product/preview/add/images/{product_id}?token={self.token}', files=files)
+        return self.__request('POST', f'product/preview/add/images/{product_id}', params={"token": self.token},  files=files)
 
     def product_preview_add_videos(self, product_id: int, urls: list):
         """
@@ -1547,7 +1538,7 @@ class Api:
         data = {
             "urls": urls
         }
-        return self.__request('POST', f'product/preview/add/videos/{product_id}?token={self.token}', json=data)
+        return self.__request('POST', f'product/preview/add/videos/{product_id}', params={"token": self.token},  json=data)
 
     def product_preview_options(self, type_: str, preview_id: int, enabled: bool, index: int, delete: bool):
         """
@@ -1569,7 +1560,7 @@ class Api:
             "index": index,
             "delete": delete
         }
-        return self.__request('POST', f'product/preview/options/{type_}/{preview_id}?token={self.token}', json=data)
+        return self.__request('POST', f'product/preview/options/{type_}/{preview_id}', params={"token": self.token},  json=data)
 
     def product_edit_v2(self, new_status: str, products: list):
         """
@@ -1587,7 +1578,7 @@ class Api:
             "new_status": new_status,
             "products": products
         }
-        return self.__request('POST', f'product/edit/V2/status?token={self.token}', json=data)
+        return self.__request('POST', f'product/edit/V2/status', params={"token": self.token},  json=data)
 
     def product_platform_category_add(self, product_id: int, category_id: int):
         """
@@ -1601,7 +1592,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#producttomarketplacesubcategory"
         """
-        return self.__request('GET', f'product/platform/category/add/{product_id}/{category_id}?token={self.token}')
+        return self.__request('GET', f'product/platform/category/add/{product_id}/{category_id}', params={"token": self.token})
 
     def dictionary_platforms_categories(self, id_: str):
         """
@@ -1652,7 +1643,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#massPriceUpdate"
         """
-        return self.__request('POST', f'product/edit/prices?token={self.token}', json=data)
+        return self.__request('POST', f'product/edit/prices', params={"token": self.token},  json=data)
 
     def product_edit_update_products_tasks_status(self, task_id: str):
         """
@@ -1665,7 +1656,11 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#productsUpdateStatus"
         """
-        return self.__request('GET', f'product/edit/UpdateProductsTaskStatus?taskId={task_id}&token={self.token}')
+        params = {
+            "taskId": task_id,
+            "token": self.token
+        }
+        return self.__request('GET', f'product/edit/UpdateProductsTaskStatus', params=params)
 
     """ Добавление содержимого товаров """
 
@@ -1682,7 +1677,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_content.asp#addfile"
         """
-        return self.__request('POST', f'product/content/add/file/{product_id}?token={self.token}', files=file)
+        return self.__request('POST', f'product/content/add/file/{product_id}', params={"token": self.token},  files=file)
 
     def product_content_add_files(self, product_id: int, count: int, files):
         """
@@ -1699,7 +1694,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_content.asp#addfiles"
         """
-        return self.__request('POST', f'product/content/add/files/{product_id}/{count}?token={self.token}', files=files)
+        return self.__request('POST', f'product/content/add/files/{product_id}/{count}', params={"token": self.token},  files=files)
 
     def product_content_add_text(self, data: dict):
         """
@@ -1708,15 +1703,16 @@ class Api:
         Args:
             data: Тело, которое необходимо отправить в запросе.
                 {
-                    "product_id":222,
-                    "content":[
+                    "product_id": 222,
+                    "content":
+                    [
                         {
-                            "serial":"test",
-                            "value":"Test value",
+                            "serial": "test",
+                            "value": "Test value",
                             "id_v": 0
                         },
                         {
-                            "value":"Test value #2",
+                            "value": "Test value #2",
                             "id_v": 0
                         }
                     ]
@@ -1727,7 +1723,7 @@ class Api:
             URL INFO: "https://my.digiseller.com/inside/api_content.asp#addtext"
         """
 
-        return self.__request('POST', f'product/content/add/text?token={self.token}', json=data)
+        return self.__request('POST', f'product/content/add/text', params={"token": self.token},  json=data)
 
     def product_content_add_code(self, product_id: int, count: int):
         """
@@ -1741,10 +1737,9 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_content.asp#addcode"
         """
-        return self.__request('GET', f'product/content/add/code/{product_id}/{count}?token={self.token}')
+        return self.__request('GET', f'product/content/add/code/{product_id}/{count}', params={"token": self.token})
 
-    def product_content_update_file_v2(self, files: dict, content_id: int, product_id: int,
-                                       update_old: bool):
+    def product_content_update_file_v2(self, files: dict, content_id: int, product_id: int, update_old: bool):
         """
         Метод редактирования содержимого типа 'Файл'.
 
@@ -1764,14 +1759,19 @@ class Api:
             URL INFO: "https://my.digiseller.com/inside/api_content.asp#updateFile"
         """
         if product_id is None:
-            return self.__request('POST',
-                                  f'product/content/update/file/v2?contentid={content_id}&updateold={update_old}&token={self.token}',
-                                  files=files,
-                                  headers={'Content-Type': 'multipart/form-data'})
-        return self.__request('POST',
-                              f'product/content/update/file/v2?contentid={product_id}&updateold={update_old}&token={self.token}',
-                              files=files,
-                              headers={'Content-Type': 'multipart/form-data'})
+            params = {
+                "contentid": content_id,
+                "updateold": update_old,
+                "token": self.token
+            }
+            return self.__request('POST', f'product/content/update/file/v2', files=files, headers={'Content-Type': 'multipart/form-data'}, params=params)
+        params = {
+            ""
+            "contentid": product_id,
+            "updateold": update_old,
+            "token": self.token
+        }
+        return self.__request('POST', f'product/content/update/file/v2', files=files, headers={'Content-Type': 'multipart/form-data'}, params=params)
 
     def product_content_update_text(self, content_id: int, serial: str, value: str, update_old: bool,
                                     product_id: int):
@@ -1803,7 +1803,7 @@ class Api:
                 "update_old": update_old,
                 "product_id": product_id
             }
-        return self.__request('POST', f'product/content/update/text?token={self.token}', json=data)
+        return self.__request('POST', f'product/content/update/text', params={"token": self.token},  json=data)
 
     def product_content_delete(self, content_id: int, product_id: int):
         """
@@ -1817,9 +1817,13 @@ class Api:
             Response: 'StatusCode: 204 (NoContent)'
             URL INFO: "https://my.digiseller.com/inside/api_content.asp#deleteContent"
         """
+        params = {
+            "contentid": content_id,
+            "productid": product_id,
+            "token": self.token
+        }
 
-        return self.__request('GET',
-                              f'product/content/delete?contentid={content_id}&productid={product_id}&token={self.token}')
+        return self.__request('GET', f'product/content/delete', params=params)
 
     def product_content_delete_all(self, product_id: int):
         """
@@ -1832,8 +1836,11 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_content.asp#deleteAllContent"
         """
-
-        return self.__request('GET', f'product/content/delete/all?productid={product_id}&token={self.token}')
+        params = {
+            "productid": product_id,
+            "token": self.token
+        }
+        return self.__request('GET', f'product/content/delete/all', params=params)
 
     def product_content_update_form(self, product_id: int, address: str, method: str, encoding: str, options: bool,
                                     answer: bool, allow_purchase_multiple_items: bool, url_for_quantity: str):
@@ -1864,7 +1871,11 @@ class Api:
             "allow_purchase_multiple_items": allow_purchase_multiple_items,
             "url_for_quantity": url_for_quantity
         }
-        return self.__request('POST', f'product/content/delete/all?productid={product_id}&token={self.token}', json=data)
+        params = {
+            "productid": product_id,
+            "token": self.token
+        }
+        return self.__request('POST', f'product/content/delete/all', json=data, params=params)
 
     """ Шаблоны отчислений """
 
@@ -1879,8 +1890,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_templates.asp#create_template"
         """
-        data = {"name": name}
-        return self.__request('POST', f'templates?token={self.token}', json=data)
+        return self.__request('POST', f'templates', params={"token": self.token},  json={"name": name})
 
     def templates_edit(self, name: str, id_: int):
         """
@@ -1895,7 +1905,7 @@ class Api:
             URL INFO: "https://my.digiseller.com/inside/api_templates.asp#edit_template"
         """
         data = {"name": name}
-        return self.__request('POST', f'templates/{id_}?token={self.token}', json=data)
+        return self.__request('POST', f'templates/{id_}', params={"token": self.token},  json=data)
 
     def templates_list(self, page: int, count: int):
         """
@@ -1909,7 +1919,12 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_templates.asp#get_list_templates"
         """
-        return self.__request('GET', f'templates?page={page}&count={count}&token={self.token}')
+        params = {
+            "page": page,
+            "count": count,
+            "token": self.token
+        }
+        return self.__request('GET', f'templates', params=params)
 
     def templates_delete(self, id_: int, method: str = "POST"):
         """
@@ -1924,8 +1939,8 @@ class Api:
             URL INFO: "https://my.digiseller.com/inside/api_templates.asp#delete_template"
         """
         if method == "POST":
-            return self.__request('POST', f'templates/delete/{id_}?token={self.token}')
-        return self.__request('DELETE', f'templates/{id_}?token={self.token}')
+            return self.__request('POST', f'templates/delete/{id_}', params={"token": self.token})
+        return self.__request('DELETE', f'templates/{id_}', params={"token": self.token})
 
     def templates_products(self, template_id: int, product_id: int, price_min: float,
                            price_max: float,
@@ -1999,7 +2014,7 @@ class Api:
             Response: 'StatusCode: 204 (NoContent)'
             URL INFO: "https://my.digiseller.com/inside/api_templates.asp#edit_products"
         """
-        return self.__request('POST', f'templates/products?token={self.token}', json=data)
+        return self.__request('POST', f'templates/products', params={"token": self.token},  json=data)
 
     def template_apply(self, template_id: int, seller_id: int):
         """
@@ -2018,7 +2033,7 @@ class Api:
             "seller_id": seller_id
         }
 
-        return self.__request('POST', f'templates/apply?token={self.token}', json=data)
+        return self.__request('POST', f'templates/apply', params={"token": self.token},  json=data)
 
     """ Параметры товара """
 
@@ -2034,7 +2049,7 @@ class Api:
             URL INFO: "https://my.digiseller.com/inside/api_parameters.asp#getlist"
         """
 
-        return self.__request('GET', f'products/options/list/{product_id}?token={self.token}')
+        return self.__request('GET', f'products/options/list/{product_id}', params={"token": self.token})
 
     def products_options_info(self, option_id: int):
         """
@@ -2048,7 +2063,7 @@ class Api:
             URL INFO: "https://my.digiseller.com/inside/api_parameters.asp#getfull"
         """
 
-        return self.__request('GET', f'products/options/{option_id}?token={self.token}')
+        return self.__request('GET', f'products/options/{option_id}', params={"token": self.token})
 
     def products_options_add(self, name_ru: str, name_en: str, comment_ru: str, comment_en: str, ptype: str,
                              separate_content: bool, required: bool, modifier_visible: bool, order: int,
@@ -2126,7 +2141,7 @@ class Api:
             "variants": variants
         }
 
-        return self.__request('POST', f'products/options?token={self.token}', json=data)
+        return self.__request('POST', f'products/options', params={"token": self.token},  json=data)
 
     def products_options_update(self, name_ru: str, name_en: str, ptype: str,
                                 separate_content: bool, required: bool, modifier_visible: bool, order: int,
@@ -2165,7 +2180,7 @@ class Api:
             "option_id": option_id
         }
 
-        return self.__request('POST', f'products/options/update?token={self.token}', json=data)
+        return self.__request('POST', f'products/options/update', params={"token": self.token},  json=data)
 
     def products_options_delete(self, option_id: int):
         """
@@ -2180,7 +2195,7 @@ class Api:
             URL INFO: "https://my.digiseller.com/inside/api_parameters.asp#deleteparam"
         """
 
-        return self.__request('GET', f'products/options/{option_id}/delete?token={self.token}')
+        return self.__request('GET', f'products/options/{option_id}/delete', params={"token": self.token})
 
     def products_variant_add(self, option_id: int, data: dict):
         """
@@ -2231,7 +2246,7 @@ class Api:
             URL INFO: "https://my.digiseller.com/inside/api_parameters.asp#createvariant"
         """
 
-        return self.__request('POST', f'products/options/{option_id}/variants?token={self.token}', json=data)
+        return self.__request('POST', f'products/options/{option_id}/variants', params={"token": self.token},  json=data)
 
     def products_variant_edit(self, option_id: int, variant_id: int, name_ru: str, name_en: str, ptype: str, rate: int, default: bool, visible: bool, order: int):
         """
@@ -2263,7 +2278,7 @@ class Api:
             "order": order
         }
 
-        return self.__request('POST', f'products/options/{option_id}/variants/{variant_id}?token={self.token}', json=data)
+        return self.__request('POST', f'products/options/{option_id}/variants/{variant_id}', params={"token": self.token},  json=data)
 
     def products_variant_delete(self, option_id: int, variant_id: int):
         """
@@ -2279,7 +2294,7 @@ class Api:
             URL INFO: "https://my.digiseller.com/inside/api_parameters.asp#deletevariant"
         """
 
-        return self.__request('GET', f'products/options/{option_id}/variants/{variant_id}/delete?token={self.token}')
+        return self.__request('GET', f'products/options/{option_id}/variants/{variant_id}/delete', params={"token": self.token})
 
     """ Переписка с покупателями """
 
@@ -2322,8 +2337,11 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_debates.asp#get_state"
         """
-
-        return self.__request('GET', f'debates/v2/chat-state?token={self.token}&id_i={id_i}')
+        params = {
+            "token": self.token,
+            "id_i": id_i
+        }
+        return self.__request('GET', f'debates/v2/chat-state', params=params)
 
     def chat_edit_status(self, id_i: int, chat_state: int):
         """
@@ -2341,8 +2359,12 @@ class Api:
             Response: 'StatusCode: 200 (NoContent)'
             URL INFO: "https://my.digiseller.com/inside/api_debates.asp#post_state"
         """
-
-        return self.__request('POST', f'debates/v2/chat-state?token={self.token}&id_i={id_i}&chat_state={chat_state}')
+        params = {
+            "token": self.token,
+            "id_i": id_i,
+            "chat_state": chat_state
+        }
+        return self.__request('POST', f'debates/v2/chat-state', params=params)
 
     def chat_order_messages(self, id_i: int, hidden: int, id_from: int, id_to: int, old_id: int, newer: int, count: int):
         """
@@ -2387,8 +2409,11 @@ class Api:
             Response: 'StatusCode: 200 (NoContent)'
             URL INFO: "https://my.digiseller.com/inside/api_debates.asp#post_seen"
         """
-
-        return self.__request('POST', f'debates/v2/seen?token={self.token}&id_i={id_i}')
+        params = {
+            "token": self.token,
+            "id_i": id_i
+        }
+        return self.__request('POST', f'debates/v2/seen', params=params)
 
     def chat_upload_preview(self, files, lang: str):
         """
@@ -2403,8 +2428,11 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_debates.asp#upload_preview"
         """
-
-        return self.__request('POST', f'debates/v2/upload-preview?token={self.token}&lang={lang}', headers={'Content-Type': 'multipart/form-data'}, files=files)
+        params = {
+            "token": self.token,
+            "lang": lang
+        }
+        return self.__request('POST', f'debates/v2/upload-preview', params=params, headers={'Content-Type': 'multipart/form-data'}, files=files)
 
     def chat_send_message(self, id_i: int, data: dict):
         """
@@ -2429,12 +2457,14 @@ class Api:
             Response: 'StatusCode: 200 (NoContent)'
             URL INFO: "https://my.digiseller.com/inside/api_debates.asp#post_debate"
         """
+        params = {
+            "token": self.token,
+            "id_i": id_i
+        }
+        headers = {'Accept': 'application/json; charset=UTF-8'}
         if 'files' in data:
             headers = {'Content-Type': 'multipart/form-data'}
-        else:
-            headers = {'Content-Type': 'application/json'}
-
-        return self.__request('POST', f'debates/v2/?token={self.token}&id_i={id_i}', json=data, headers=headers)
+        return self.__request('POST', f'debates/v2/', params=params, json=data, headers=headers)
 
     def chat_delete_message(self, order_id: int, message_id: int):
         """
@@ -2448,8 +2478,11 @@ class Api:
             Response: '[] (NoContent)'
             URL INFO: "https://my.digiseller.com/inside/api_debates.asp#delete_debate"
         """
-
-        return self.__request('DELETE', f'debates/v2/{message_id}?token={self.token}&id_i={order_id}')
+        params = {
+            "token": self.token,
+            "id_i": order_id
+        }
+        return self.__request('DELETE', f'debates/v2/{message_id}', params=params)
 
     """ РЕКЛАМА НА ПЛОЩАДКЕ """
 
@@ -2546,4 +2579,4 @@ class Api:
             URL INFO: "https://my.digiseller.com/inside/api_account.asp#view_balance"
         """
 
-        return self.__request('GET', f'sellers/account/balance/info?token={self.token}')
+        return self.__request('GET', f'sellers/account/balance/info', params={"token": self.token})
