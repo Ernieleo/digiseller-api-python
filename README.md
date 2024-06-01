@@ -24,7 +24,16 @@ Digiseller API Python — это библиотека Python для доступ
 pip install digiseller-api-python
 ```
 
+Для ручной установки с репозитория
+```sh
+pip3 install git+https://github.com/Ernieleo/digiseller-api-python.git
+````
+
 ## Простая демонстрация
+
+Получить API Ключ 👉[тут](https://my.digiseller.com/inside/api_keys.asp)👈  
+Получить ID Продавца 👉[тут](https://my.digiseller.com/)👈
+
 ```python
 from digiseller_api_python import Api
 
