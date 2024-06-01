@@ -49,7 +49,7 @@ class Api:
             if response.status_code == 200:
                 response_data = response.json()
                 self.token = response_data.get('token')
-                self.token_expiration = current_time + 5400  # Жизнь токена - 1.5 часа [По докам 2, но на всякий]
+                self.token_expiration = current_time + 5400  # Жизнь токена - 1.5 часа [По докам 2, но на всякий меньше]
             else:
                 raise ValueError("Не удалось получить токен.")
         return self.token
@@ -87,26 +87,23 @@ class Api:
         if 'headers' in options:
             headers.update(options.pop('headers'))
         options['headers'] = headers
-
-        response = self.session.request(method, self.URL + uri_path, **options)
         try:
-            if response.status_code == 200 and response.text:
-                data = response.json()
-                if 'retval' in data and data['retval'] != 0:
-                    error_message = f"Ошибка в API: '{data.get('retdesc', 'Неизвестная ошибка Digiseller API')}'"
-                    if 'errors' in data:
-                        for error in data['errors']:
-                            message = next((msg['value'] for msg in error['message'] if msg['locale'] == 'ru-RU'),
-                                           next((msg['value'] for msg in error['message'] if msg['locale'] == 'en-US'), "Неизвестная ошибка"))
-                            error_message += f". Код ошибки: '{error['code']}'. Причина ошибки: '{message}'."
-                    raise ValueError(error_message)
-                return data
-            elif response.status_code == 200 and not response.text:
-                return {"message": "Запрос выполнен успешно"}
-            else:
-                raise Exception(f'Ошибка при обработке ответа! HTTP Код состояния: {response.status_code}, содержимое: {response.text}')
-        except json.decoder.JSONDecodeError:
-            raise ValueError(f"Ошибка декодирования JSON: Код HTTP '{response.status_code}'\nТело ответа: '{response.text}'")
+            response = self.session.request(method, self.URL + uri_path, **options)
+            try:
+                if response.status_code == 200:
+                    if response.text:
+                        return response.json()
+                    elif not response.text:
+                        return {"message": "Запрос выполнен успешно"}
+                elif response.status_code == 400:
+                    return response.json()
+                else:
+                    raise ValueError(f'Ошибка при обработке ответа! HTTP Код состояния: {response.status_code}, содержимое: {response.text}')
+            except json.decoder.JSONDecodeError:
+                raise ValueError(f"Ошибка декодирования JSON: Код HTTP '{response.status_code}'\nТело ответа: '{response.text}'")
+
+        except Exception:
+            raise
 
     def unique_code(self, unique_code: str):
         """
