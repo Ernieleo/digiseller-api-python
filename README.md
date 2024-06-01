@@ -2,7 +2,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/digiseller-api-python.svg)](https://pypi.org/project/digiseller-api-python)
 [![Downloads](https://img.shields.io/pypi/dm/digiseller-api-python)](https://pypistats.org/packages/digiseller-api-python)
-[![License](https://img.shields.io/github/license/Ernieleo/digiseller-api-python)](https://github.com/Ernieleo/digiseller-api-python/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/Ernieleo/digiseller-api-python)](https://github.com/Ernieleo/digiseller-api-python/blob/master/LICENSE)
 
 Digiseller API Python — это библиотека Python для доступа к API Digiseller. 
 
