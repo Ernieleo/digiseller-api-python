@@ -87,8 +87,6 @@ class Api:
                 options['params']['token'] = token
             elif 'json' in options:
                 options['json']['token'] = token
-            else:
-                uri_path += f'?token={token}'
 
         headers = {'Accept': 'application/json; charset=UTF-8', 'Content-Type': 'application/json'}
         if 'files' in options:
@@ -1188,9 +1186,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#edituniqueunfixed"
         """
-        return self.__request('POST',
-                              f'https://api.digiseller.ru/api/product/edit/uniqueunfixed/{product_id}', params={"token": self.token},
-                              json=data)
+        return self.__request('POST', f'https://api.digiseller.ru/api/product/edit/uniqueunfixed/{product_id}', params={"token": self.token}, json=data)
 
     def product_edit_book(self, product_id: int, data: dict):
         """
