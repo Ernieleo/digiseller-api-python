@@ -1,12 +1,9 @@
-""" digiseller-api python package created by Ernieleo. Version 1.1"""
+""" digiseller-api python package created by Ernieleo and DrugOFF. Version 1.1"""
 
 import requests
 import hashlib
 import time
 import json
-
-from requests import Response
-
 
 class Api:
     URL = 'https://api.digiseller.ru/api/'
@@ -37,24 +34,32 @@ class Api:
         self.token = None
 
     def __get_token(self):
-        current_time = int(time.time())
-        if self.token is None or current_time >= self.token_expiration:
-            sign = hashlib.sha256((self.api_key + str(current_time)).encode()).hexdigest()
-            data = {
-                "seller_id": self.seller_id,
-                "timestamp": current_time,
-                "sign": sign
-            }
-            response = self.session.post(self.URL + 'apilogin', json=data)
-            if response.status_code == 200:
-                response_data = response.json()
-                self.token = response_data.get('token')
-                self.token_expiration = current_time + 5400  # Жизнь токена - 1.5 часа [По докам 2, но на всякий меньше]
-            else:
-                raise ValueError("Не удалось получить токен.")
-        return self.token
+        """
+        Documentation: https://my.digiseller.com/inside/api_general.asp#token
 
-    """ Общие методы """
+        Returns:
+            str: Токен авторизации на API.
+
+        Exception:
+            ValueError("Не удалось получить токен.")
+        """
+
+        current_time = int(time.time())
+        # if self.token is None or current_time >= self.token_expiration:
+        sign = hashlib.sha256((self.api_key + str(current_time)).encode()).hexdigest()
+        data = {
+            "seller_id": self.seller_id,
+            "timestamp": current_time,
+            "sign": sign
+        }
+        response = self.session.post(self.URL + 'apilogin', json=data)
+        if response.status_code == 200:
+            response_data = response.json()
+            self.token = response_data['token']
+            self.token_expiration = current_time + 6600  # Жизнь токена - 1 час 50 минут [По докам 2 часа, но на всякий меньше]
+        else:
+            raise ValueError("Не удалось получить токен.")
+        return self.token
 
     def __request(self, method, uri_path, **options):
         """
@@ -71,8 +76,13 @@ class Api:
         Raises:
             Exception: Если во время запроса возникает ошибка.
         """
+
+        # for key, value in options.items(): # Debug
+        #     print(f'{key}: {value}')
+
         current_time = int(time.time())
         if self.token is None or current_time >= self.token_expiration:
+            print("Вызвали обновление токена")
             token = self.__get_token()
             if 'params' in options:
                 options['params']['token'] = token
@@ -81,12 +91,14 @@ class Api:
             else:
                 uri_path += f'?token={token}'
 
-        headers = {'Accept': 'application/json; charset=UTF-8'}
-        if 'files' not in options:
-            headers['Content-Type'] = 'application/json'
-        if 'headers' in options:
-            headers.update(options.pop('headers'))
+        headers = {'Accept': 'application/json; charset=UTF-8', 'Content-Type': 'application/json'}
+        if 'files' in options:
+            headers.update(options['headers'])
         options['headers'] = headers
+
+        # for key, value in options.items(): # Debug
+        #     print(f'{key}: {value}')
+
         try:
             response = self.session.request(method, self.URL + uri_path, **options)
             try:
@@ -94,16 +106,35 @@ class Api:
                     if response.text:
                         return response.json()
                     elif not response.text:
-                        return {"message": "Запрос выполнен успешно"}
+                        return {"message": "Запрос выполнен успешно", "http_code": response.status_code, "response": "Нет ответа"}
                 elif response.status_code == 400:
-                    return response.json()
+                    if response.text:
+                        return response.json()
+                    elif not response.text:
+                        return {"message": "Bad Request. Ошибка в составленном запросе", "http_code": response.status_code, "response": "Нет ответа"}
                 else:
-                    raise ValueError(f'Ошибка при обработке ответа! HTTP Код состояния: {response.status_code}, содержимое: {response.text}')
+                    if response.text:
+                        return {"message": "Ошибка при обработке ответа сервера", "http_code": response.status_code, "response": response.text}
+                    else:
+                        return {"message": "Ошибка при обработке ответа сервера", "http_code": response.status_code, "response": "Нет ответа"}
             except json.decoder.JSONDecodeError:
-                raise ValueError(f"Ошибка декодирования JSON: Код HTTP '{response.status_code}'\nТело ответа: '{response.text}'")
+                raise {"message": "Ошибка декодирования JSON", "http_code": response.status_code, "response": response.text}
 
         except Exception:
             raise
+
+    """ API Digiseller методы """
+
+    def get_token(self):
+        """
+        Получение токена для ручного формирования запросов.
+
+        Returns:
+            str: Токен авторизации для API запросов к Digiseller.
+        """
+        if self.token is None or int(time.time()) >= self.token_expiration:
+            self.__get_token()
+        return self.token
 
     def unique_code(self, unique_code: str):
         """
@@ -117,7 +148,6 @@ class Api:
                 URL INFO: "https://my.digiseller.com/inside/api_general.asp#searchuniquecode"
 
         """
-
         return self.__request('GET', f'purchases/unique-code/{unique_code}', params={"token": self.token})
 
     def purchase_info(self, invoice_id: int):
@@ -426,8 +456,7 @@ class Api:
             "page": page,
             "currency": currency,
             "lang": lang,
-            "show_hidden": show_hidden,
-            "token": self.token
+            "show_hidden": show_hidden
         }
 
         return self.__request('POST', f'seller-goods', params={"token": self.token}, json=data)
@@ -1519,7 +1548,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_goods.asp#add_image_preview"
         """
-        return self.__request('POST', f'product/preview/add/images/{product_id}', params={"token": self.token}, files=files)
+        return self.__request('POST', f'product/preview/add/images/{product_id}', params={"token": self.token}, files=files, headers={'Content-Type': 'multipart/form-data'})
 
     def product_preview_add_videos(self, product_id: int, urls: list):
         """
@@ -1675,7 +1704,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_content.asp#addfile"
         """
-        return self.__request('POST', f'product/content/add/file/{product_id}', params={"token": self.token}, files=file)
+        return self.__request('POST', f'product/content/add/file/{product_id}', params={"token": self.token}, files=file, headers={'Content-Type': 'multipart/form-data'})
 
     def product_content_add_files(self, product_id: int, count: int, files):
         """
@@ -1692,7 +1721,7 @@ class Api:
             dict: Ответ от сервера в формате JSON.
             URL INFO: "https://my.digiseller.com/inside/api_content.asp#addfiles"
         """
-        return self.__request('POST', f'product/content/add/files/{product_id}/{count}', params={"token": self.token}, files=files)
+        return self.__request('POST', f'product/content/add/files/{product_id}/{count}', params={"token": self.token}, files=files, headers={'Content-Type': 'multipart/form-data'})
 
     def product_content_add_text(self, data: dict):
         """
@@ -2418,7 +2447,7 @@ class Api:
         Предварительная загрузка файлов.
 
         Args:
-            lang (str): Язык отображения информации	ru-RU (по умолчанию) или en-US.
+            lang (str): Язык отображения информации	ru-RU или en-US.
             files: Файлы для отправки в бинарном виде. "files[]": binary data.
                 Example: [('files[]', ('file': open(file_path, 'rb'))]
 
@@ -2430,11 +2459,12 @@ class Api:
             "token": self.token,
             "lang": lang
         }
-        return self.__request('POST', f'debates/v2/upload-preview', params=params, headers={'Content-Type': 'multipart/form-data'}, files=files)
+        return self.__request('POST', f'debates/v2/upload-preview', params=params, files=files, headers={'Content-Type': 'multipart/form-data'})
 
     def chat_send_message(self, id_i: int, data: dict):
         """
         Отправка нового сообщения.
+        Массив загруженных файлов получается от метода предварительной загрузки файлов
 
         Args:
             id_i (int): Номер заказа.
@@ -2459,10 +2489,7 @@ class Api:
             "token": self.token,
             "id_i": id_i
         }
-        headers = {'Accept': 'application/json; charset=UTF-8'}
-        if 'files' in data:
-            headers = {'Content-Type': 'multipart/form-data'}
-        return self.__request('POST', f'debates/v2/', params=params, json=data, headers=headers)
+        return self.__request('POST', f'debates/v2/', params=params, json=data)
 
     def chat_delete_message(self, order_id: int, message_id: int):
         """
