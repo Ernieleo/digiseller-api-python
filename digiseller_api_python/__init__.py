@@ -82,7 +82,6 @@ class Api:
 
         current_time = int(time.time())
         if self.token is None or current_time >= self.token_expiration:
-            print("Вызвали обновление токена")
             token = self.__get_token()
             if 'params' in options:
                 options['params']['token'] = token
