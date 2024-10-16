@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/github/license/Ernieleo/digiseller-api-python)](https://github.com/Ernieleo/digiseller-api-python/blob/master/LICENSE)
 [![Test Status](https://github.com/Ernieleo/digiseller-api-python/actions/workflows/test.yml/badge.svg)](https://github.com/Ernieleo/digiseller-api-python/actions/workflows/test.yml)
 
-English documentation available [here](./docs/README_en.md).
+English documentation available [here](https://github.com/Ernieleo/digiseller-api-python/blob/master/docs/README_en.md).
 
 **Digiseller API Python** — это неофициальная Python-библиотека для взаимодействия с API Digiseller.
 
