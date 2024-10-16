@@ -1,8 +1,11 @@
-name: Publish Package to PyPI
+# .github/workflows/publish.yml
+name: Publish Package
 
 on:
-  release:
-    types: [published]
+  workflow_run:
+    workflows: ["Run Tests"]
+    types:
+      - completed
 
 permissions:
   contents: write
@@ -10,6 +13,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # Запуск только при успешных тестах
 
     steps:
     - uses: actions/checkout@v3
@@ -31,14 +35,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install build
-        pip install -r requirements.txt  # Установка зависимостей, включая тестовые
-
-    - name: Run tests
-      env:
-        SELLER_ID: ${{ secrets.SELLER_ID }}
-        API_KEY: ${{ secrets.API_KEY }}
-      run: |
-        python -m unittest discover -s tests  # Запуск тестов в каталоге "tests"
 
     - name: Build package
       run: python -m build
@@ -46,7 +42,7 @@ jobs:
     - name: Get project version
       id: get_version
       run: |
-        VERSION=$(python setup.py --version)  # Извлекаем версию из setup.py
+        VERSION=$(python setup.py --version)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
 
     - name: Publish package to PyPI
@@ -58,7 +54,7 @@ jobs:
     - name: Upload .whl to GitHub Release
       uses: actions/upload-release-asset@v1
       with:
-        upload_url: ${{ github.event.release.upload_url }}
+        upload_url: ${{ github.event.workflow_run.event.release.upload_url }}
         asset_path: dist/*.whl
         asset_name: "project_name-${{ env.VERSION }}-py3.whl"
         asset_content_type: application/zip
