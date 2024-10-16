@@ -4,6 +4,7 @@ name: Run Tests
 on:
   release:
     types: [published]
+  workflow_dispatch:    # Добавлено для ручного запуска через интерфейс GitHub
 
 permissions:
   contents: write
