@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://i.ibb.co/KVW9djd/digiseller-logo.png" alt="Digiseller API Python" width="100%">
+  <img src="https://i.ibb.co/hyTLSDZ/digiseller-logo.png" alt="Digiseller API Python" width="90%">
 </p>
 
 [![PyPI version](https://img.shields.io/pypi/v/digiseller-api-python.svg?cacheSeconds=3600)](https://pypi.org/project/digiseller-api-python)
