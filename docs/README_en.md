@@ -83,7 +83,6 @@ To submit changes, create a pull request, and it will be reviewed.
 ## Planned 
 Future plans include creating documentation for easy and correct use.
 
-
 ## Useful Links
 - [Digiseller Website](https://my.digiseller.ru)  
 - [Digiseller API Documentation](https://my.digiseller.com/inside/api.asp)
