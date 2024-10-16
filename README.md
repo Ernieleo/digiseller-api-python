@@ -85,3 +85,4 @@ print("Password:", password)
 ## Полезные ссылки
 - [Сайт Digiseller](https://my.digiseller.ru)  
 - [Документация API Digiseller](https://my.digiseller.com/inside/api.asp)
+- [Проект на PyPI](https://pypi.org/project/digiseller-api-python/)

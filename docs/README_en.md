@@ -86,3 +86,4 @@ Future plans include creating documentation for easy and correct use.
 ## Useful Links
 - [Digiseller Website](https://my.digiseller.ru)  
 - [Digiseller API Documentation](https://my.digiseller.com/inside/api.asp)
+- [PyPI project](https://pypi.org/project/digiseller-api-python/)
