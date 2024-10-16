@@ -18,8 +18,6 @@ English documentation available [here](https://github.com/Ernieleo/digiseller-ap
 
 ## Установка
 
-Установить пакет можно двумя способами:
-
 ### С использованием PyPI:
 ```sh
 pip install digiseller-api-python
