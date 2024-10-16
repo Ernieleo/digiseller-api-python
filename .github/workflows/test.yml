@@ -1,0 +1,41 @@
+# .github/workflows/test.yml
+name: Run Tests
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt  # Установка зависимостей, включая тестовые
+
+    - name: Run tests
+      env:
+        SELLER_ID: ${{ secrets.SELLER_ID }}
+        API_KEY: ${{ secrets.API_KEY }}
+      run: |
+        python -m unittest discover -s tests  # Запуск тестов в каталоге "tests"
