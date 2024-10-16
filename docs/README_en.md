@@ -17,8 +17,6 @@ You can find the full API documentation on the [Digiseller website](https://my.d
 
 ## Installation
 
-The package can be installed in two ways:
-
 ### Using PyPI:
 ```sh
 pip install digiseller-api-python
