@@ -7,9 +7,9 @@ def readme():
 
 setup(
     name='digiseller_api_python',
-    version='2.0.0',
+    version='2.1.0',
     author='Ernieleo',
-    author_email='mmetelnikov57@gmail.com',
+    author_email='dev@offnik.ru',
     description='Interaction with Digiseller API via Python',
     long_description=readme(),
     long_description_content_type='text/markdown',
