@@ -21,7 +21,11 @@ def send_request(method, url, **kwargs):
 
         # If Content-Type is not JSON
         else:
-            if response.text:
+            if response.headers.get("Content-Type", "").startswith("image/"):
+                # The response contains image data
+                return response.content
+
+            elif response.text:
                 # The response contains text data
                 return response.text
             return response.status_code
