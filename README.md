@@ -1,4 +1,6 @@
-# Digiseller API Python
+<p align="center">
+  <img src="https://i.ibb.co/KVW9djd/digiseller-logo.png" alt="Digiseller API Python" width="100%">
+</p>
 
 [![PyPI version](https://img.shields.io/pypi/v/digiseller-api-python.svg?cacheSeconds=3600)](https://pypi.org/project/digiseller-api-python)
 [![PyPI Package Monthly Download](https://img.shields.io/pypi/dm/digiseller-api-python)](https://pypistats.org/packages/digiseller-api-python)
@@ -69,9 +71,24 @@ print("Email:", email)
 print("Password:", password)
 ```
 
-### Описание использования
 Этот пример показывает, как использовать `DigisellerApi` для получения данных, введенных покупателем при оформлении заказа.  
 Функция `get_account_info_from_digiseller` выполняет запрос по уникальному коду и ищет данные по заданным названиям полей. Названия полей учитывают возможность различий в языке зависимых от выбранного пользователем на сайте.
+
+### Дополнительный пример
+```python
+from digiseller_api import DigisellerApi
+
+from PIL import Image
+from io import BytesIO
+
+image = DigisellerApi.get_main_img(id_d=4470041, maxlength=400)
+# Открываем изображение из байтов напрямую
+image_bytes = image.encode() if isinstance(image, str) else image
+image = Image.open(BytesIO(image_bytes))
+image.show()
+```
+
+В данном примере представлено взаимодействие с функцией [получения основного изображения товара](https://my.digiseller.com/inside/api_catgoods.asp#fast_image), вызов происходит без использования данных продавца и создания экземпляра API-клиента.
 
 ## Разработка
 Приветствуется вклад в развитие проекта!  
@@ -81,8 +98,12 @@ print("Password:", password)
 
 ## Запланировано 
 В будущих планах создание документации для удобного и корректного использования.
+- [x] Добавить все функции API
+- [x] Дополнительный пример использования в Python
+- [ ] Полная документация методов (в разработке)
+- [ ] Дополнительные функции (в планах)
 
 ## Полезные ссылки
+- [Проект на PyPI](https://pypi.org/project/digiseller-api-python/)
 - [Сайт Digiseller](https://my.digiseller.ru)  
 - [Документация API Digiseller](https://my.digiseller.com/inside/api.asp)
-- [Проект на PyPI](https://pypi.org/project/digiseller-api-python/)
