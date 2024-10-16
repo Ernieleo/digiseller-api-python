@@ -79,6 +79,9 @@ print("Password:", password)
 
 Для внесения изменений создайте pull-реквест, и он будет рассмотрен.
 
+## Запланировано 
+В будущих планах создание документации для удобного и корректного использования.
+
 ## Полезные ссылки
 - [Сайт Digiseller](https://my.digiseller.ru)  
 - [Документация API Digiseller](https://my.digiseller.com/inside/api.asp)
