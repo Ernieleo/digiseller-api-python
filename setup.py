@@ -7,10 +7,10 @@ def readme():
 
 setup(
     name='digiseller_api_python',
-    version='2.1.0',
+    version='2.2.0',
     author='Ernieleo',
     author_email='dev@offnik.ru',
-    description='Interaction with Digiseller API via Python',
+    description='Python wrapper package for easy integration with the Digiseller API',
     long_description=readme(),
     long_description_content_type='text/markdown',
     url='https://github.com/Ernieleo/Digiseller-API-Python',
@@ -22,13 +22,13 @@ setup(
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent'
     ],
-    keywords='digiseller api python',
+    keywords='digiseller api python wrapper',
     project_urls={
-        'Documentation': 'https://my.digiseller.com/inside/api.asp',
-        'Download': 'https://pypi.org/project/digiseller-api-python/',
+        'API Documentation': 'https://my.digiseller.com/inside/api.asp',
         'Write me': 'https://t.me/ernieleo'
     },
     python_requires='>=3.8'
