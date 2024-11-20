@@ -2,8 +2,6 @@
 name: Run Tests
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
 
 permissions:
