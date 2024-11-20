@@ -6,9 +6,9 @@ class DigisellerApi:
     URL = 'https://api.digiseller.ru/api/'
     def __init__(self, seller_id: str, api_key: str):
         if not isinstance(seller_id, str) or not seller_id:
-            raise ValueError("Необходимо передать корректный 'seller_id'.")
+            raise ValueError("You must pass the correct 'seller_id'.")
         if not isinstance(api_key, str) or not api_key:
-            raise ValueError("Необходимо передать корректный 'api_key'.")
+            raise ValueError("You must pass the correct 'api_key'.")
 
         self.seller_id = int(seller_id)
         self.api_key = api_key
@@ -21,7 +21,8 @@ class DigisellerApi:
         data = {
             "seller_id": self.seller_id,
             "timestamp": current_time,
-            "sign": sign
+            "sign": sign,
+
         }
         response = send_request('POST', self.URL + 'apilogin', json=data)
         return response
@@ -228,7 +229,7 @@ class DigisellerApi:
         }
         params = {"token": self._get_valid_token()}
         endpoint = f'seller-goods'
-        return send_request('POST', self.URL + endpoint, json=data, params = params)
+        return send_request('POST', self.URL + endpoint, json=data, params=params)
 
     @staticmethod
     # Скидка по товару
@@ -842,4 +843,44 @@ class DigisellerApi:
             "lang": lang
         }
         endpoint = f'rekl'
+        return send_request('GET', self.URL + endpoint, params=params)
+
+    # Операции по личному счету Digiseller
+    # Operations on Digiseller personal account
+    def sellers_account_receipts(self, page: int, count: int, currency: str, type: str, codeFilter: str, allowType: str, start: str, finish: str):
+        params = {
+            "token": self._get_valid_token(),
+            "page": page,
+            "count": count,
+            "currency": currency,
+            "type": type,
+            "codeFilter": codeFilter,
+            "allowType": allowType,
+            "start": start,
+            "finish": finish
+        }
+        endpoint = f'sellers/account/receipts'
+        return send_request('GET', self.URL + endpoint, params=params)
+
+    # Операции через внешних агрегаторов
+    # Operations through external aggregators
+    def sellers_account_receipts_external(self, page: int, count: int, order: str, code: str, aggregator: str):
+        params = {
+            "token": self._get_valid_token(),
+            "page": page,
+            "count": count,
+            "order": order,
+            "code": code,
+            "aggregator": aggregator
+        }
+        endpoint = f'sellers/account/receipts/external'
+        return send_request('GET', self.URL + endpoint, params=params)
+
+    # Информация о балансе личного счёта
+    # Information about personal account balance
+    def sellers_account_balance_info(self):
+        params = {
+            "token": self._get_valid_token()
+        }
+        endpoint = f'sellers/account/balance/info'
         return send_request('GET', self.URL + endpoint, params=params)
