@@ -397,7 +397,7 @@ class DigisellerApi:
     # Add product images
     def product_preview_add_images(self, product_id: int, files: dict):
         params = {"token": self._get_valid_token()}
-        endpoint = f'preview/add/images/{product_id}'
+        endpoint = f'product/preview/add/images/{product_id}'
         return send_request('POST', self.URL + endpoint, files=files, params=params)
 
     # Добавление youtube-ссылок в галерею
