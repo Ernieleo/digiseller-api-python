@@ -495,69 +495,72 @@ class DigisellerApi:
         endpoint = f'product/content/add/code/{product_id}/{count}'
         return send_request('GET', self.URL + endpoint, params=params)
 
-    # Метод редактирования содержимого типа "Файл"
-    # The method of updating content of type "File"
-    def product_content_update_file_v2(self, files: dict, content_id: int, product_id: int, update_old: bool):
-        params = {"token": self._get_valid_token()}
-        if product_id is None:
-            params.update({
-                "contentid": content_id,
-                "updateold": update_old,
-            })
-        else:
-            params.update({
-                "contentid": product_id,
-                "updateold": update_old,
-            })
-        endpoint = f'product/content/update/file/v2'
+    def product_content_update_file_v2(self, files: dict, content_id: int = None, product_id: int = None, update_old: bool = False):
+        if not content_id and not product_id:
+            raise ValueError("It is necessary to specify at least one of the parameters: Content_id or Product_ID.")
+        params = {
+            "token": self._get_valid_token(),
+            "updateold": update_old
+        }
+        if content_id:
+            params["contentid"] = content_id
+        elif product_id:
+            params["productid"] = product_id
+        endpoint = 'product/content/update/file/v2'
         return send_request('POST', self.URL + endpoint, files=files, params=params)
 
     # Редактирование содержимого типа "текст" или "ссылка"
     # The method of updating content of type "Text" and "Url"
-    def product_content_update_text(self, content_id: int, serial: str, value: str, update_old: bool, product_id: int):
+    def product_content_update_text(self, content_id: int = None, serial: str = "", value: str = "", update_old: bool = False, product_id: int = None):
+        if not content_id and not product_id:
+            raise ValueError("It is necessary to specify at least one of the parameters: Content_id or Product_ID.")
         params = {"token": self._get_valid_token()}
-        endpoint = f'product/content/update/text'
+        endpoint = 'product/content/update/text'
         data = {
             "serial": serial,
             "value": value,
-            "updateold": update_old,
+            "update_old": update_old  # Исправлено имя параметра
         }
-        if product_id is None:
-            data.update({
-                "content_id": content_id
-            })
+        if product_id:
+            data["product_id"] = product_id
         else:
-            data.update({
-                "product_id": product_id
-            })
+            data["content_id"] = content_id
         return send_request('POST', self.URL + endpoint, json=data, params=params)
 
-    # Удаление содержимого типа "текст", "ссылка" или "файл"
-    # The method of deleting content of type "text", "url" or "file"
-    def product_content_delete(self, content_id: int, product_id: int):
+    # Удаление одного содержимого по content_id или product_id
+    # Removing one contents according to content_id or product_id
+    def product_content_delete(self, content_id: int = None, product_id: int = None):
+        if not content_id and not product_id:
+            raise ValueError("It is necessary to specify at least one of the parameters: Content_id or Product_ID.")
         params = {
-            "token": self._get_valid_token(),
-            "contentid": content_id,
-            "productid": product_id
+            "token": self._get_valid_token()
         }
-        endpoint = f'product/content/delete'
+        if content_id:
+            params["contentid"] = content_id
+        if product_id:
+            params["productid"] = product_id
+        endpoint = 'product/content/delete'
         return send_request('GET', self.URL + endpoint, params=params)
 
-    # Полное удаление содержимого типа "текст", "ссылка" или "файл"
-    # The method for completely deleting content of type "text", "url" or "file"
+    # Полное удаление всех содержимых по product_id
+    # Full removal of all contained by Product_id
     def product_content_delete_all(self, product_id: int):
+        if not product_id:
+            raise ValueError("It is necessary to specify the Product_ID for the complete removal of the contents.")
         params = {
             "token": self._get_valid_token(),
             "productid": product_id
         }
-        endpoint = f'product/content/delete/all'
+        endpoint = 'product/content/delete/all'
         return send_request('GET', self.URL + endpoint, params=params)
 
     # Создание или редактирование содержимого типа "форма"
     # The method of creating or updating content of type "form"
-    def product_content_update_form(self, product_id: int, address: str, method: str, encoding: str, options: bool, answer: bool, allow_purchase_multiple_items: bool, url_for_quantity: str):
+    def product_content_update_form(self, product_id: int, address: str, method: str, encoding: str, options: bool = False, answer: bool = False, allow_purchase_multiple_items: bool = False, url_for_quantity: str = None):
+        if not product_id or not address or not method or not encoding:
+            raise ValueError("Mandatory parameters: product_id, address, method, encoding.")
         params = {"token": self._get_valid_token()}
-        endpoint = f'product/content/update/form'
+        endpoint = 'product/content/update/form'
         data = {
             "product_id": product_id,
             "address": address,
@@ -565,9 +568,10 @@ class DigisellerApi:
             "encoding": encoding,
             "options": options,
             "answer": answer,
-            "allow_purchase_multiple_items": allow_purchase_multiple_items,
-            "url_for_quantity": url_for_quantity
+            "allow_purchase_multiple_items": allow_purchase_multiple_items
         }
+        if url_for_quantity:
+            data["url_for_quantity"] = url_for_quantity
         return send_request('POST', self.URL + endpoint, json=data, params=params)
 
     # Cоздание шаблона комиссионных отчислений
