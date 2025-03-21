@@ -8,3 +8,7 @@ __pycache__
 test.py
 local_debug/
 /tests/local_test.py
+
+tests/*
+!tests/re_test.py
+.env
