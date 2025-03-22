@@ -15,7 +15,23 @@ English documentation available [here](https://github.com/Ernieleo/digiseller-ap
 Возможны неточности в некоторых запросах, поскольку комплексное тестирование не проводилось, так как некоторые методы API, описанные в документации Digiseller, могут не соответствовать своему описанию.
 
 Полную документацию API можно найти на [сайте Digiseller](https://my.digiseller.com/inside/api.asp).  
-Методы API из блока 'Оплата' недоступны в библиотеке.
+Методы API для покупателей из блока 'Оплата' недоступны в библиотеке.
+
+## ⚠️ Изменение способа импорта (с версии 3.0.0)
+
+Начиная с версии **3.0.0**, библиотека использует новую структуру.  
+Импорт должен выполняться из `digiseller_api_python`, а не `digiseller_api`.
+
+### Было (до 3.0.0):
+```python
+from digiseller_api import DigisellerApi
+```
+### Стало (с 3.0.0):
+```python
+from digiseller_api_python import DigisellerApi
+```
+
+---
 
 ## Установка
 
@@ -36,12 +52,16 @@ pip3 install git+https://github.com/Ernieleo/digiseller-api-python.git
 - Получите **API ключ** [здесь](https://my.digiseller.com/inside/api_keys.asp).
 - Получите **ID продавца** [здесь](https://my.digiseller.com/).
 
+Не забывайте - ваш API ключ должен оставаться в безопасности, не публикуйте его в интернете.
+
 ### Пример кода
+
 ```python
-from digiseller_api import DigisellerApi
+from digiseller_api_python import DigisellerApi
 
 # Создание экземпляра API-клиента
-digiseller_api = DigisellerApi(seller_id="11155533", api_key="CA1SF69A000A46D00039F01Z11017V39")
+digiseller_api = DigisellerApi(seller_id="11155533", api_key="ZA1SG0YDA46DV0Z39F01Z11017V39")
+
 
 # Пример функции для получения данных, указанных пользователем при заказе, по уникальному коду
 def get_account_info_from_digiseller(unique_code):
@@ -49,19 +69,20 @@ def get_account_info_from_digiseller(unique_code):
     try:
         # Выполняем запрос
         data = digiseller_api.unique_code(unique_code)
-        
+
         # Извлекаем необходимые данные
         for option in data.get("options", []):
             if option["name"] in ["Почта аккаунта ChatGPT", "ChatGPT account email"]:
                 email = option["value"]
             elif option["name"] in ["Пароль аккаунта ChatGPT", "ChatGPT account password"]:
                 password = option["value"]
-    
+
         return email, password
     except Exception as e:
         # Обработка исключений
         print(f"Ошибка: {e}")
         return None, None
+
 
 # Использование функции для получения информации
 unique_code = "ВАШ_УНИКАЛЬНЫЙ_КОД"
@@ -74,8 +95,9 @@ print("Password:", password)
 Функция `get_account_info_from_digiseller` выполняет запрос по уникальному коду и ищет данные по заданным названиям полей. Названия полей учитывают возможность различий в языке зависимых от выбранного пользователем на сайте.
 
 ### Дополнительный пример
+
 ```python
-from digiseller_api import DigisellerApi
+from digiseller_api_python import DigisellerApi
 
 from PIL import Image
 from io import BytesIO
@@ -96,13 +118,46 @@ image.show()
 - **Изображение (`image/*`)**: Возвращается как **байтовый объект**.
 - **Текст (`text/plain` и другие текстовые форматы)**: Возвращается как **строка**.
 - **Другие типы**: Возвращается **статус-код** ответа.
-- **Ошибка**: В случае проблем будет выброшено исключение `ValueError`.
+
+## Обработка исключений
+
+Библиотека предоставляет собственные классы исключений, позволяющие точно обрабатывать ошибки при работе.
+
+### Базовое исключение
+
+```python
+from digiseller_api_python import DigisellerError
+```
+
+Все исключения библиотеки наследуются от `DigisellerError`, поэтому можно перехватывать как конкретные, так и общие ошибки:
+
+```python
+try:
+    digiseller_api.get_token()
+except DigisellerError as e:
+    print(f"Ошибка Digiseller API: {e}")
+```
+
+---
+
+### Доступные исключения
+
+| Исключение                       | Описание                                |
+|----------------------------------|-----------------------------------------|
+| `DigisellerError`                | Базовое исключение                      |
+| `DigisellerTimeoutError`         | Тайм-аут при запросе к API              |
+| `DigisellerInvalidResponseError` | Ответ от API не соответствует ожиданиям |
+| `DigisellerHTTPError`            | Ошибка HTTP (например, 400, 500 и т.д.) |
+
+---
+
+Вы можете использовать исключения для логирования, отладки
 
 ## Разработка
 Приветствуется вклад в развитие проекта!  
 Если вы хотите помочь с поддержанием актуальности и дальнейшей разработкой, пожалуйста, следуйте официальным правилам API сервиса Digiseller и придерживайтесь общего стиля кода проекта.
 
-Для внесения изменений создайте pull-реквест, и он будет рассмотрен.
+Для внесения изменений создайте форк и последующий pull-реквест, и он будет рассмотрен.
 
 ## Запланировано 
 В будущих планах создание документации для удобного и корректного использования.
@@ -110,7 +165,7 @@ image.show()
 - [x] Дополнительный пример использования в Python
 - [x] Добавить дополнительные отсутствующие функции
 - [ ] Полная документация методов (в разработке)
-- [ ] Добавить оставшиеся функции (По запросу)
+- [x] Добавить оставшиеся функции (за исключением)
 
 ## Полезные ссылки
 - [Проект на PyPI](https://pypi.org/project/digiseller-api-python/)
