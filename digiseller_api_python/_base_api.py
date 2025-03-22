@@ -1,14 +1,15 @@
 import hashlib
 import time
-from digiseller_api.request_handler import send_request
+from digiseller_api_python._exceptions import DigisellerError, DigisellerInvalidResponseError
+from digiseller_api_python._request_handler import send_request
 
 class DigisellerApi:
     URL = 'https://api.digiseller.ru/api/'
     def __init__(self, seller_id: str, api_key: str):
         if not isinstance(seller_id, str) or not seller_id:
-            raise ValueError("You must pass the correct 'seller_id'.")
+            raise DigisellerError("You must pass the correct 'seller_id'.")
         if not isinstance(api_key, str) or not api_key:
-            raise ValueError("You must pass the correct 'api_key'.")
+            raise DigisellerError("You must pass the correct 'api_key'.")
 
         self.seller_id = int(seller_id)
         self.api_key = api_key
@@ -42,7 +43,7 @@ class DigisellerApi:
             self.token_expiration = current_time + 6600
             return self.token
         else:
-            raise ValueError(f"Error obtaining authorization token on the server: {token_validation.get('desc')}")
+            raise DigisellerInvalidResponseError(f"Error obtaining authorization token on the server: {token_validation.get('desc')}")
 
     # Получение номера запроса и капчи
     # Obtaining the request number and captcha
@@ -497,7 +498,7 @@ class DigisellerApi:
 
     def product_content_update_file_v2(self, files: dict, content_id: int = None, product_id: int = None, update_old: bool = False):
         if not content_id and not product_id:
-            raise ValueError("It is necessary to specify at least one of the parameters: Content_id or Product_ID.")
+            raise DigisellerError("It is necessary to specify at least one of the parameters: Content_id or Product_ID.")
         params = {
             "token": self._get_valid_token(),
             "updateold": update_old
@@ -513,7 +514,7 @@ class DigisellerApi:
     # The method of updating content of type "Text" and "Url"
     def product_content_update_text(self, content_id: int = None, serial: str = "", value: str = "", update_old: bool = False, product_id: int = None):
         if not content_id and not product_id:
-            raise ValueError("It is necessary to specify at least one of the parameters: Content_id or Product_ID.")
+            raise DigisellerError("It is necessary to specify at least one of the parameters: Content_id or Product_ID.")
         params = {"token": self._get_valid_token()}
         endpoint = 'product/content/update/text'
         data = {
@@ -531,7 +532,7 @@ class DigisellerApi:
     # Removing one contents according to content_id or product_id
     def product_content_delete(self, content_id: int = None, product_id: int = None):
         if not content_id and not product_id:
-            raise ValueError("It is necessary to specify at least one of the parameters: Content_id or Product_ID.")
+            raise DigisellerError("It is necessary to specify at least one of the parameters: Content_id or Product_ID.")
         params = {
             "token": self._get_valid_token()
         }
@@ -546,7 +547,7 @@ class DigisellerApi:
     # Full removal of all contained by Product_id
     def product_content_delete_all(self, product_id: int):
         if not product_id:
-            raise ValueError("It is necessary to specify the Product_ID for the complete removal of the contents.")
+            raise DigisellerError("It is necessary to specify the Product_ID for the complete removal of the contents.")
         params = {
             "token": self._get_valid_token(),
             "productid": product_id
@@ -558,7 +559,7 @@ class DigisellerApi:
     # The method of creating or updating content of type "form"
     def product_content_update_form(self, product_id: int, address: str, method: str, encoding: str, options: bool = False, answer: bool = False, allow_purchase_multiple_items: bool = False, url_for_quantity: str = None):
         if not product_id or not address or not method or not encoding:
-            raise ValueError("Mandatory parameters: product_id, address, method, encoding.")
+            raise DigisellerError("Mandatory parameters: product_id, address, method, encoding.")
         params = {"token": self._get_valid_token()}
         endpoint = 'product/content/update/form'
         data = {
@@ -851,13 +852,13 @@ class DigisellerApi:
 
     # Операции по личному счету Digiseller
     # Operations on Digiseller personal account
-    def sellers_account_receipts(self, page: int, count: int, currency: str, type: str, codeFilter: str, allowType: str, start: str, finish: str):
+    def sellers_account_receipts(self, page: int, count: int, currency: str, rtype: str, codeFilter: str, allowType: str, start: str, finish: str):
         params = {
             "token": self._get_valid_token(),
             "page": page,
             "count": count,
             "currency": currency,
-            "type": type,
+            "type": rtype,
             "codeFilter": codeFilter,
             "allowType": allowType,
             "start": start,
