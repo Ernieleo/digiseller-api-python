@@ -1,15 +1,14 @@
 from setuptools import setup, find_packages
 
-
 def readme():
     with open('README.md', 'r', encoding='utf-8') as f:
         return f.read()
 
 setup(
-    name='digiseller_api_python',
-    version='2.2.0',
+    name='digiseller-api-python',
+    version='3.0.0',
     author='Ernieleo',
-    author_email='dev@offnik.ru',
+    author_email='ernieleo@offnik.ru',
     description='Python wrapper package for easy integration with the Digiseller API',
     long_description=readme(),
     long_description_content_type='text/markdown',
@@ -23,6 +22,7 @@ setup(
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: 3.13',
+        'Programming Language :: Python :: 3.14',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent'
     ],
