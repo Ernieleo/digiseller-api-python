@@ -9,15 +9,16 @@ from ._exceptions import (
 
 
 def send_request(method, url, **kwargs):
+
+    kwargs['headers'] = {"Accept": "application/json, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.7"}
+
     if 'files' in kwargs:
-        headers = {'Accept': 'application/json; charset=UTF-8'}
+        headers = {'Accept': 'application/json'}
         kwargs['headers'] = headers
 
     try:
         with httpx.Client(timeout=10) as client:
             response = client.request(method, url, **kwargs)
-
-            # Проверка успешного статуса (включая 200 и пустой ответ)
             if response.status_code == 200:
 
                 content_type = response.headers.get("Content-Type", "")
