@@ -18,3 +18,11 @@ class DigisellerHTTPError(DigisellerError):
     def __init__(self, status_code, message):
         super().__init__(f"HTTP {status_code}: {message}")
         self.status_code = status_code
+
+class DigisellerUnavailableError(DigisellerError):
+    """Ошибка когда Digiseller недоступен"""
+    pass
+
+class DigisellerAPIAuthError(DigisellerError):
+    """Ошибка когда недостаточно прав доступа"""
+    pass
