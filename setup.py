@@ -6,7 +6,7 @@ def readme():
 
 setup(
     name='digiseller-api-python',
-    version='3.1.0',
+    version='3.1.1',
     author='Ernieleo',
     author_email='ernieleo@offnik.ru',
     description='Python wrapper package for easy integration with the Digiseller API',
@@ -14,7 +14,7 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/Ernieleo/Digiseller-API-Python',
     packages=find_packages(),
-    install_requires=['httpx>=0.24.0'],
+    install_requires=['httpx>=0.26.0'],
     classifiers=[
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
