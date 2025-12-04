@@ -7,4 +7,6 @@ __all__ = [
     "DigisellerTimeoutError",
     "DigisellerInvalidResponseError",
     "DigisellerHTTPError",
+    "DigisellerUnavailableError",
+    "DigisellerAPIAuthError"
 ]
