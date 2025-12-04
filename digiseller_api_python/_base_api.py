@@ -668,3 +668,259 @@ class DigisellerApi:
         }
         endpoint = f'templates/products'
         return self._send_request('GET', self.URL + endpoint, params=params)
+
+    # Обновление товаров в шаблоне отчислений
+    # Product update in the commission template
+    def update_template_products(self, data: dict):
+        params = {"token": self._get_valid_token()}
+        endpoint = f'templates/products'
+        self._send_request('POST', self.URL + endpoint, json=data, params=params)
+
+    # Применение шаблона отчислений
+    # Applying a commission template
+    def template_apply(self, template_id: int, seller_id: int):
+        params = {"token": self._get_valid_token()}
+        endpoint = f'templates/apply'
+        data = {
+            "template_id": template_id,
+            "seller_id": seller_id
+        }
+        self._send_request('POST', self.URL + endpoint, json=data, params=params)
+
+    # Список параметров товара
+    # Product parameter list
+    def products_options_list(self, product_id: int):
+        params = {"token": self._get_valid_token()}
+        endpoint = f'products/options/list/{product_id}'
+        self._send_request('GET', self.URL + endpoint, params=params)
+
+    # Информация о параметре
+    # Parameter information
+    def products_options_info(self, option_id: int):
+        params = {"token": self._get_valid_token()}
+        endpoint = f'products/options/{option_id}'
+        self._send_request('GET', self.URL + endpoint, params=params)
+
+    # Создание параметра
+    # Create parameter
+    def products_options_add(self, data: dict):
+        params = {"token": self._get_valid_token()}
+        endpoint = f'products/options'
+        self._send_request('POST', self.URL + endpoint, json=data, params=params)
+
+    # Редактирование параметра
+    # Edit parameter
+    def products_options_update(self, data: dict):
+        params = {"token": self._get_valid_token()}
+        endpoint = f'products/options/update'
+        self._send_request('POST', self.URL + endpoint, json=data, params=params)
+
+    # Удаление параметра
+    # Delete parameter
+    def products_options_delete(self, option_id: int):
+        params = {"token": self._get_valid_token()}
+        endpoint = f'products/options/{option_id}/delete'
+        self._send_request('GET', self.URL + endpoint, params=params)
+
+    # Создание варианта
+    # Create variant
+    def products_variant_add(self, option_id: int, data: dict):
+        params = {"token": self._get_valid_token()}
+        endpoint = f'products/options/{option_id}/variants'
+        self._send_request('POST', self.URL + endpoint, json=data, params=params)
+
+    # Редактирование варианта
+    # Edit variant
+    def products_variant_edit(self, option_id: int, variants: list, data: dict):
+        params = {"token": self._get_valid_token()}
+        endpoint = f'products/options/{option_id}/variants/{variants}'
+        self._send_request('POST', self.URL + endpoint, json=data, params=params)
+
+    # Удаление варианта
+    # Delete variant
+    def products_variant_delete(self, option_id: int, variant_id: int):
+        params = {"token": self._get_valid_token()}
+        endpoint = f'products/options/{option_id}/variants/{variant_id}/delete'
+        self._send_request('GET', self.URL + endpoint, params=params)
+
+    # Получение списка диалогов
+    # Getting a list of dialogs
+    def chat_list(self, filter_new: int, email: str, id_ds: list, pagesize: int, page: int):
+        params = {
+            "token": self._get_valid_token(),
+            'filter_new': filter_new,
+            'email': email,
+            'id_ds': id_ds,
+            'pagesize': pagesize,
+            'page': page
+        }
+        endpoint = f'debates/v2/chats'
+        self._send_request('GET', self.URL + endpoint, params=params)
+
+    # Получение статуса диалога
+    # Getting dialog status
+    def chat_status(self, order_id: int):
+        params = {
+            "token": self._get_valid_token(),
+            "id_i": order_id
+        }
+        endpoint = f'debates/v2/chat-state'
+        self._send_request('GET', self.URL + endpoint, params=params)
+
+    # Изменение статуса диалога
+    # Changing the status of a dialog
+    def chat_edit_status(self, order_id: int, chat_state: int):
+        params = {
+            "token": self._get_valid_token(),
+            "id_i": order_id,
+            "chat_state": chat_state
+        }
+        endpoint = f'debates/v2/chat-state'
+        self._send_request('POST', self.URL + endpoint, params=params)
+
+    # Получение списка сообщений
+    # Getting a list of messages
+    def chat_order_messages(self, order_id: int, hidden: int, id_from: int, id_to: int, old_id: int, newer: int, count: int):
+        params = {
+            "token": self._get_valid_token(),
+            "id_i": order_id,
+            "hidden": hidden,
+            "id_from": id_from,
+            "id_to": id_to,
+            "old_id": old_id,
+            "newer": newer,
+            "count": count
+        }
+        endpoint = f'debates/v2'
+        self._send_request('GET', self.URL + endpoint, params=params)
+
+    # Установка флага прочитан
+    # Setting the read flag
+    def chat_set_flag(self, order_id: int):
+        params = {
+            "token": self._get_valid_token(),
+            "id_i": order_id
+        }
+        endpoint = f'debates/v2/seen'
+        self._send_request('POST', self.URL + endpoint, params=params)
+
+    # Предварительная загрузка файлов
+    # Preuploading files
+    def chat_upload_preview(self, files: dict, lang: str):
+        params = {
+            "token": self._get_valid_token(),
+            "lang": lang
+        }
+        endpoint = f'debates/v2/upload-preview'
+        self._send_request('POST', self.URL + endpoint, params=params, files=files)
+
+    # Отправка нового сообщения
+    # Sending a new message
+    def chat_send_message(self, order_id: int, data: dict):
+        params = {
+            "token": self._get_valid_token(),
+            "id_i": order_id
+        }
+        endpoint = f'debates/v2'
+        self._send_request('POST', self.URL + endpoint, params=params, json=data)
+
+    # Удаление сообщения
+    # Deleting a message
+    def chat_delete_message(self, order_id: int, message_id: int):
+        params = {
+            "token": self._get_valid_token(),
+            "id_i": order_id
+        }
+        endpoint = f'debates/v2/{message_id}'
+        self._send_request('DELETE', self.URL + endpoint, params=params)
+
+    # Получение списка сообщений
+    # Getting a list of messages
+    def chat_admin_messages(self, date_from: str, count: int, id_from: int, id_to: int, corr_id: int, only_unread: bool):
+        params = {
+            "token": self._get_valid_token(),
+            "date_from": date_from,
+            "count": count,
+            "id_from": id_from,
+            "id_to": id_to,
+            "corr_id": corr_id,
+            "only_unread": only_unread
+        }
+        endpoint = f'messages/v2'
+        self._send_request('GET', self.URL + endpoint, params=params)
+
+    # Получение текущих значений валют
+    # Getting current currency values
+    def exchange_rate(self, base_currency: str):
+        params = {
+            "token": self._get_valid_token(),
+            "base_currency": base_currency
+        }
+        endpoint = f'sellers/currency'
+        self._send_request('GET', self.URL + endpoint, params=params)
+
+    # Изменение курса валют
+    # Exchange rate changes
+    def change_exchange_rate(self, base_currency: str, rate: float, bank: str, complement: float, type_currency: str):
+        params = {"token": self._get_valid_token()}
+        endpoint = f'sellers/currency'
+        data = {
+            "base_currency": base_currency,
+            "rate": rate,
+            "bank": bank,
+            "complement": complement,
+            "type_currency": type_currency
+        }
+        self._send_request('POST', self.URL + endpoint, json=data, params=params)
+
+    # Реклама на площадке
+    # Advertisement on marketplace
+    def advertisement(self, owner: int, date: str, lang: str):
+        params = {
+            "token": self._get_valid_token(),
+            "owner": owner,
+            "date": date,
+            "lang": lang
+        }
+        endpoint = f'rekl'
+        self._send_request('GET', self.URL + endpoint, params=params)
+
+    # Операции по личному счету Digiseller
+    # Operations on Digiseller personal account
+    def sellers_account_receipts(self, page: int, count: int, currency: str, rtype: str, codeFilter: str, allowType: str, start: str, finish: str):
+        params = {
+            "token": self._get_valid_token(),
+            "page": page,
+            "count": count,
+            "currency": currency,
+            "type": rtype,
+            "codeFilter": codeFilter,
+            "allowType": allowType,
+            "start": start,
+            "finish": finish
+        }
+        endpoint = f'sellers/account/receipts'
+        self._send_request('GET', self.URL + endpoint, params=params)
+
+    # Операции через внешних агрегаторов
+    # Operations through external aggregators
+    def sellers_account_receipts_external(self, page: int, count: int, order: str, code: str, aggregator: str):
+        params = {
+            "token": self._get_valid_token(),
+            "page": page,
+            "count": count,
+            "order": order,
+            "code": code,
+            "aggregator": aggregator
+        }
+        endpoint = f'sellers/account/receipts/external'
+        self._send_request('GET', self.URL + endpoint, params=params)
+
+    # Информация о балансе личного счёта
+    # Information about personal account balance
+    def sellers_account_balance_info(self):
+        params = {
+            "token": self._get_valid_token()
+        }
+        endpoint = f'sellers/account/balance/info'
+        self._send_request('GET', self.URL + endpoint, params=params)
