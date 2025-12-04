@@ -60,13 +60,13 @@ jobs:
 
     steps:
     - name: Download Artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v6.0.0
       with:
         name: release-dists
         path: dist/
 
     - name: Publish to PyPI
-      uses: pypa/gh-action-pypi-publish@v1.12.4
+      uses: pypa/gh-action-pypi-publish@v1.13.0
 
     - name: Upload Files to GitHub Release
       env:
