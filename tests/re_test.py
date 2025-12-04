@@ -44,22 +44,6 @@ class TestDigisellerApiCore(unittest.TestCase):
 
         print(f"✅ Токен получен ({len(token)} символов)")
 
-    # def test_class_and_methods_have_docstrings(self):
-    #     """Проверка документации в классе и его методах"""
-    #     self.assertIsNotNone(
-    #         DigisellerApi.__doc__,
-    #         msg="Класс DigisellerApi должен содержать docstring",
-    #     )
-    #     for attr in dir(self.api):
-    #         if not attr.startswith("_"):
-    #             obj = getattr(self.api, attr)
-    #             if callable(obj):
-    #                 with self.subTest(method=attr):
-    #                     self.assertIsNotNone(
-    #                         obj.__doc__,
-    #                         msg=f"Метод `{attr}` должен иметь docstring",
-    #                     )
-
     def test_smoke_instantiation(self):
         """Smoke-тест: просто инициализация класса"""
         self.assertIsInstance(self.api, DigisellerApi)
