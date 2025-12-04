@@ -26,3 +26,8 @@ class DigisellerUnavailableError(DigisellerError):
 class DigisellerAPIAuthError(DigisellerError):
     """Ошибка когда недостаточно прав доступа"""
     pass
+
+
+class DigisellerProxyError(DigisellerError):
+    """Ошибка связанная с использованием прокси"""
+    pass

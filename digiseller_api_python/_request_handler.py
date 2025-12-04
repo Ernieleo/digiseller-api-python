@@ -6,7 +6,8 @@ from ._exceptions import (
     DigisellerInvalidResponseError,
     DigisellerHTTPError,
     DigisellerUnavailableError,
-    DigisellerAPIAuthError
+    DigisellerAPIAuthError,
+    DigisellerProxyError
 )
 
 
@@ -94,6 +95,9 @@ def send_request(method, url: str, timeout: int = 60, proxy: str = None, **kwarg
 
     except httpx.TimeoutException:
         raise DigisellerTimeoutError("The exceeded response time from Digiseller.")
+
+    except httpx.ProxyError as e:
+        raise DigisellerProxyError(f"Proxy error: {e}")
 
     except httpx.RequestError as e:
         raise DigisellerError(f"Error when performing a request to {e.request.url}: {e}")

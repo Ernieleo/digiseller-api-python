@@ -151,6 +151,7 @@ except DigisellerError as e:
 | `DigisellerHTTPError`            | HTTP error (e.g., 400, 500, etc.)                            |
 | `DigisellerUnavailableError`     | Digiseller is loading but not working or updating            |
 | `DigisellerAPIAuthError`         | Insufficient permissions. Check access rights with API key   |
+| `DigisellerProxyError`           | Error connecting via proxy                                   |
 ---
 
 You can use exceptions for logging, debugging.

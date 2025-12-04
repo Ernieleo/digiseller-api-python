@@ -8,5 +8,6 @@ __all__ = [
     "DigisellerInvalidResponseError",
     "DigisellerHTTPError",
     "DigisellerUnavailableError",
-    "DigisellerAPIAuthError"
+    "DigisellerAPIAuthError",
+    "DigisellerProxyError"
 ]

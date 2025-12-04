@@ -151,6 +151,7 @@ except DigisellerError as e:
 | `DigisellerHTTPError`            | Ошибка HTTP (например, 400, 500 и т.д.)                   |
 | `DigisellerUnavailableError`     | Digiseller загружается, но не работает или обновляется    |
 | `DigisellerAPIAuthError`         | Недостаточно прав. Проверьте права доступа с ключом API   |
+| `DigisellerProxyError`           | Ошибка при подключении через прокси                       |
 ---
 
 Вы можете использовать исключения для логирования, отладки
