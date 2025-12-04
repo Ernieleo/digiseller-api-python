@@ -15,8 +15,9 @@ Russian documentation available [here](../README.md).
 Inaccuracies in some requests are possible, as comprehensive testing has not been conducted because some API methods described in the Digiseller documentation may not correspond to their description.
 
 Full API documentation can be found on the [Digiseller website](https://my.digiseller.com/inside/api.asp).  
-**A list of library methods and their correspondence to the official API can be found in [MAPPING.md](MAPPING.md).**  
+A list of library methods and their correspondence to the official API can be found in [MAPPING.md](MAPPING.md).   
 API methods for buyers from the 'Payment' block are not available in the library.
+
 ---
 
 ## Installation
