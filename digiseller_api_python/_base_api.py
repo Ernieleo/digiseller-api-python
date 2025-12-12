@@ -674,7 +674,7 @@ class DigisellerApi:
     def update_template_products(self, data: dict):
         params = {"token": self._get_valid_token()}
         endpoint = f'templates/products'
-        self._send_request('POST', self.URL + endpoint, json=data, params=params)
+        return self._send_request('POST', self.URL + endpoint, json=data, params=params)
 
     # Применение шаблона отчислений
     # Applying a commission template
@@ -685,63 +685,63 @@ class DigisellerApi:
             "template_id": template_id,
             "seller_id": seller_id
         }
-        self._send_request('POST', self.URL + endpoint, json=data, params=params)
+        return self._send_request('POST', self.URL + endpoint, json=data, params=params)
 
     # Список параметров товара
     # Product parameter list
     def products_options_list(self, product_id: int):
         params = {"token": self._get_valid_token()}
         endpoint = f'products/options/list/{product_id}'
-        self._send_request('GET', self.URL + endpoint, params=params)
+        return self._send_request('GET', self.URL + endpoint, params=params)
 
     # Информация о параметре
     # Parameter information
     def products_options_info(self, option_id: int):
         params = {"token": self._get_valid_token()}
         endpoint = f'products/options/{option_id}'
-        self._send_request('GET', self.URL + endpoint, params=params)
+        return self._send_request('GET', self.URL + endpoint, params=params)
 
     # Создание параметра
     # Create parameter
     def products_options_add(self, data: dict):
         params = {"token": self._get_valid_token()}
         endpoint = f'products/options'
-        self._send_request('POST', self.URL + endpoint, json=data, params=params)
+        return self._send_request('POST', self.URL + endpoint, json=data, params=params)
 
     # Редактирование параметра
     # Edit parameter
     def products_options_update(self, data: dict):
         params = {"token": self._get_valid_token()}
         endpoint = f'products/options/update'
-        self._send_request('POST', self.URL + endpoint, json=data, params=params)
+        return self._send_request('POST', self.URL + endpoint, json=data, params=params)
 
     # Удаление параметра
     # Delete parameter
     def products_options_delete(self, option_id: int):
         params = {"token": self._get_valid_token()}
         endpoint = f'products/options/{option_id}/delete'
-        self._send_request('GET', self.URL + endpoint, params=params)
+        return self._send_request('GET', self.URL + endpoint, params=params)
 
     # Создание варианта
     # Create variant
     def products_variant_add(self, option_id: int, data: dict):
         params = {"token": self._get_valid_token()}
         endpoint = f'products/options/{option_id}/variants'
-        self._send_request('POST', self.URL + endpoint, json=data, params=params)
+        return self._send_request('POST', self.URL + endpoint, json=data, params=params)
 
     # Редактирование варианта
     # Edit variant
     def products_variant_edit(self, option_id: int, variants: list, data: dict):
         params = {"token": self._get_valid_token()}
         endpoint = f'products/options/{option_id}/variants/{variants}'
-        self._send_request('POST', self.URL + endpoint, json=data, params=params)
+        return self._send_request('POST', self.URL + endpoint, json=data, params=params)
 
     # Удаление варианта
     # Delete variant
     def products_variant_delete(self, option_id: int, variant_id: int):
         params = {"token": self._get_valid_token()}
         endpoint = f'products/options/{option_id}/variants/{variant_id}/delete'
-        self._send_request('GET', self.URL + endpoint, params=params)
+        return self._send_request('GET', self.URL + endpoint, params=params)
 
     # Получение списка диалогов
     # Getting a list of dialogs
@@ -755,7 +755,7 @@ class DigisellerApi:
             'page': page
         }
         endpoint = f'debates/v2/chats'
-        self._send_request('GET', self.URL + endpoint, params=params)
+        return self._send_request('GET', self.URL + endpoint, params=params)
 
     # Получение статуса диалога
     # Getting dialog status
@@ -765,7 +765,7 @@ class DigisellerApi:
             "id_i": order_id
         }
         endpoint = f'debates/v2/chat-state'
-        self._send_request('GET', self.URL + endpoint, params=params)
+        return self._send_request('GET', self.URL + endpoint, params=params)
 
     # Изменение статуса диалога
     # Changing the status of a dialog
@@ -776,7 +776,7 @@ class DigisellerApi:
             "chat_state": chat_state
         }
         endpoint = f'debates/v2/chat-state'
-        self._send_request('POST', self.URL + endpoint, params=params)
+        return self._send_request('POST', self.URL + endpoint, params=params)
 
     # Получение списка сообщений
     # Getting a list of messages
@@ -792,7 +792,7 @@ class DigisellerApi:
             "count": count
         }
         endpoint = f'debates/v2'
-        self._send_request('GET', self.URL + endpoint, params=params)
+        return self._send_request('GET', self.URL + endpoint, params=params)
 
     # Установка флага прочитан
     # Setting the read flag
@@ -802,7 +802,7 @@ class DigisellerApi:
             "id_i": order_id
         }
         endpoint = f'debates/v2/seen'
-        self._send_request('POST', self.URL + endpoint, params=params)
+        return self._send_request('POST', self.URL + endpoint, params=params)
 
     # Предварительная загрузка файлов
     # Preuploading files
@@ -812,7 +812,7 @@ class DigisellerApi:
             "lang": lang
         }
         endpoint = f'debates/v2/upload-preview'
-        self._send_request('POST', self.URL + endpoint, params=params, files=files)
+        return self._send_request('POST', self.URL + endpoint, params=params, files=files)
 
     # Отправка нового сообщения
     # Sending a new message
@@ -822,7 +822,7 @@ class DigisellerApi:
             "id_i": order_id
         }
         endpoint = f'debates/v2'
-        self._send_request('POST', self.URL + endpoint, params=params, json=data)
+        return self._send_request('POST', self.URL + endpoint, params=params, json=data)
 
     # Удаление сообщения
     # Deleting a message
@@ -832,7 +832,7 @@ class DigisellerApi:
             "id_i": order_id
         }
         endpoint = f'debates/v2/{message_id}'
-        self._send_request('DELETE', self.URL + endpoint, params=params)
+        return self._send_request('DELETE', self.URL + endpoint, params=params)
 
     # Получение списка сообщений
     # Getting a list of messages
@@ -847,7 +847,7 @@ class DigisellerApi:
             "only_unread": only_unread
         }
         endpoint = f'messages/v2'
-        self._send_request('GET', self.URL + endpoint, params=params)
+        return self._send_request('GET', self.URL + endpoint, params=params)
 
     # Получение текущих значений валют
     # Getting current currency values
@@ -857,7 +857,7 @@ class DigisellerApi:
             "base_currency": base_currency
         }
         endpoint = f'sellers/currency'
-        self._send_request('GET', self.URL + endpoint, params=params)
+        return self._send_request('GET', self.URL + endpoint, params=params)
 
     # Изменение курса валют
     # Exchange rate changes
@@ -871,7 +871,7 @@ class DigisellerApi:
             "complement": complement,
             "type_currency": type_currency
         }
-        self._send_request('POST', self.URL + endpoint, json=data, params=params)
+        return self._send_request('POST', self.URL + endpoint, json=data, params=params)
 
     # Реклама на площадке
     # Advertisement on marketplace
@@ -883,7 +883,7 @@ class DigisellerApi:
             "lang": lang
         }
         endpoint = f'rekl'
-        self._send_request('GET', self.URL + endpoint, params=params)
+        return self._send_request('GET', self.URL + endpoint, params=params)
 
     # Операции по личному счету Digiseller
     # Operations on Digiseller personal account
@@ -900,7 +900,7 @@ class DigisellerApi:
             "finish": finish
         }
         endpoint = f'sellers/account/receipts'
-        self._send_request('GET', self.URL + endpoint, params=params)
+        return self._send_request('GET', self.URL + endpoint, params=params)
 
     # Операции через внешних агрегаторов
     # Operations through external aggregators
@@ -914,7 +914,7 @@ class DigisellerApi:
             "aggregator": aggregator
         }
         endpoint = f'sellers/account/receipts/external'
-        self._send_request('GET', self.URL + endpoint, params=params)
+        return self._send_request('GET', self.URL + endpoint, params=params)
 
     # Информация о балансе личного счёта
     # Information about personal account balance
@@ -923,4 +923,4 @@ class DigisellerApi:
             "token": self._get_valid_token()
         }
         endpoint = f'sellers/account/balance/info'
-        self._send_request('GET', self.URL + endpoint, params=params)
+        return self._send_request('GET', self.URL + endpoint, params=params)
