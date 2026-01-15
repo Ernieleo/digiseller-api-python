@@ -168,11 +168,7 @@ If you find an error related to the code operation, please create an **Issue** i
 ---
 
 #### Appeal to Digiseller Developers.
-
-The service is a complex and confusing structure of interconnected companies, while technical changes are often made instantly after contacting the administration chat. This creates the impression that the administration actually performs the functions of developers, although formally the owner company and the developer company are listed as different.
-
 The main request is to tidy up the documentation. In its current form, it contains many inconsistencies with the actual API operation: errors in parameter descriptions, different spellings of the same fields within one method, incomplete explanations, and clear traces of manual formatting of each page.
-
 It's time to switch to modern standards: OpenAPI, correctly described schemas, and a convenient Swagger interface. This will significantly simplify interaction with the API and reduce the number of errors for integrators.
 
 ## Planned 
